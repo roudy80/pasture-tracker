@@ -216,6 +216,29 @@
             border-radius: 10px;
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .delete-btn:hover {
+            background: rgba(255, 0, 0, 1);
         }
         
         .photo-item img {
@@ -389,7 +412,7 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
             <h3>Log Pasture Photo</h3>
-            <input type="file" id="cameraInput" accept="image/*" capture="environment">
+            <input type="file" id="cameraInput" accept="image/jpeg,image/png" capture="environment">
             <div class="form-group">
                 <label for="photoLocation">Location:</label>
                 <input type="text" id="photoLocation" placeholder="e.g., Back pasture, Front field">
@@ -420,6 +443,13 @@
     </div>
 
     <script>
+        // Real OpenWeatherMap API key
+        const WEATHER_API_KEY = '7ab1a33cdc7b4293b4e05f99544978fa';
+        
+        // LaGrange/Schulenburg area coordinates
+        const LAT = 29.8669;  // LaGrange latitude
+        const LON = -96.8767; // LaGrange longitude
+        
         // App state
         let currentWeather = null;
         let photos = JSON.parse(localStorage.getItem('pasturePhotos') || '[]');
@@ -472,13 +502,6 @@
             }
         }
         
-        // Real OpenWeatherMap API key
-        const WEATHER_API_KEY = '7ab1a33cdc7b4293b4e05f99544978fa';
-        
-        // LaGrange/Schulenburg area coordinates
-        const LAT = 29.8669;  // LaGrange latitude
-        const LON = -96.8767; // LaGrange longitude
-        
         async function loadWeather() {
             try {
                 if (WEATHER_API_KEY === 'YOUR_API_KEY_HERE') {
@@ -527,7 +550,7 @@
                     nextHourRain: hourlyData.list[0].rain ? (hourlyData.list[0].rain['3h'] || 0) / 3 : 0,
                     rainProbability: Math.round(hourlyData.list[0].pop * 100),
                     // Store forecast data
-                    forecastData: hourlyData.list.slice(0, 5)
+                    forecastData: hourlyData.list.slice(0, 7)
                 };
                 
                 currentWeather = realWeather;
@@ -636,11 +659,11 @@
             // Fallback to mock forecast
             const days = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             const conditions = ['Sunny', 'Partly Cloudy', 'Hot', 'Cloudy', 'Humid'];
-            const peakTimes = ['2:00 PM', '3:00 PM', '2:30 PM', '3:30 PM', '2:15 PM'];
+            const peakTimes = ['2:15 PM', '2:30 PM', '3:00 PM', '2:45 PM', '3:15 PM', '2:20 PM', '3:30 PM'];
             
             let html = '';
             
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 7; i++) {
                 const baseTemp = 85 + Math.random() * 15;
                 const high = Math.round(baseTemp);
                 const low = Math.round(baseTemp - 15 - Math.random() * 10);
@@ -691,15 +714,13 @@
             
             const dayKeys = Object.keys(dailyData).slice(0, 7);
             
-            for (let i = 0; i < Math.min(5, dayKeys.length); i++) {
+            for (let i = 0; i < Math.min(7, dayKeys.length); i++) {
                 const dayData = dailyData[dayKeys[i]];
                 const high = Math.round(Math.max(...dayData.temps));
                 const low = Math.round(Math.min(...dayData.temps));
                 
-                // Find peak time (when temperature is highest)
-                const peakTempIndex = dayData.temps.indexOf(Math.max(...dayData.temps));
-                const peakHour = dayData.times[peakTempIndex];
-                const peakTime = ['2:15 PM', '2:30 PM', '3:00 PM', '2:45 PM', '3:15 PM', '2:20 PM', '3:30 PM'][i % 7];                
+                const peakTime = ['2:15 PM', '2:30 PM', '3:00 PM', '2:45 PM', '3:15 PM', '2:20 PM', '3:30 PM'][i % 7];
+                
                 // Most common condition for the day
                 const condition = capitalizeCondition(dayData.conditions[0]);
                 const icon = getWeatherIcon(condition);
@@ -729,7 +750,7 @@
                 alerts.push("🔥 Heat stress warning - Monitor cattle closely, ensure adequate water");
             }
             
-            if (weather.windSpeed < 12 && weather.temp < 95) {
+            if (weather.windSpeed < 10 && weather.temp < 95) {
                 alerts.push("✅ Good shredding conditions - Low wind, manageable temperature");
             }
             
@@ -842,6 +863,23 @@
             alert('Note saved successfully!');
         }
         
+        // Delete functions
+        function deleteEntry(entryId, entryType) {
+            if (!confirm('Are you sure you want to delete this entry?')) {
+                return;
+            }
+            
+            if (entryType === 'photo') {
+                photos = photos.filter(photo => photo.id !== entryId);
+                localStorage.setItem('pasturePhotos', JSON.stringify(photos));
+            } else {
+                notes = notes.filter(note => note.id !== entryId);
+                localStorage.setItem('pastureNotes', JSON.stringify(notes));
+            }
+            
+            displayPhotos();
+        }
+        
         function displayPhotos() {
             const grid = document.getElementById('photoGrid');
             
@@ -863,6 +901,7 @@
                 if (entry.type === 'photo') {
                     return `
                         <div class="photo-item">
+                            <button class="delete-btn" onclick="deleteEntry(${entry.id}, 'photo')" title="Delete photo">×</button>
                             <img src="${entry.imageData}" alt="Pasture photo">
                             <div class="photo-info">
                                 <strong>${entry.location}</strong><br>
@@ -875,6 +914,7 @@
                 } else {
                     return `
                         <div class="photo-item">
+                            <button class="delete-btn" onclick="deleteEntry(${entry.id}, 'note')" title="Delete note">×</button>
                             <div style="height: 150px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #666;">
                                 📝<br>NOTE
                             </div>
@@ -920,7 +960,7 @@
         }
         
         function checkSheddingConditions() {
-            if (currentWeather && currentWeather.windSpeed < 10 && currentWeather.temp < 85) {
+            if (currentWeather && currentWeather.windSpeed < 10 && currentWeather.temp < 95) {
                 if (Notification.permission === 'granted') {
                     new Notification('🌾 Perfect Shredding Weather!', {
                         body: `${currentWeather.temp}°F, ${currentWeather.windSpeed}mph wind. Great conditions for weed control.`,
