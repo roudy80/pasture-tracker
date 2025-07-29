@@ -634,7 +634,7 @@
             }
             
             // Fallback to mock forecast
-            const days = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri'];
+            const days = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             const conditions = ['Sunny', 'Partly Cloudy', 'Hot', 'Cloudy', 'Humid'];
             const peakTimes = ['2:00 PM', '3:00 PM', '2:30 PM', '3:30 PM', '2:15 PM'];
             
@@ -689,7 +689,7 @@
                 dailyData[dayKey].times.push(date.getHours());
             });
             
-            const dayKeys = Object.keys(dailyData).slice(0, 5);
+            const dayKeys = Object.keys(dailyData).slice(0, 7);
             
             for (let i = 0; i < Math.min(5, dayKeys.length); i++) {
                 const dayData = dailyData[dayKeys[i]];
@@ -699,8 +699,7 @@
                 // Find peak time (when temperature is highest)
                 const peakTempIndex = dayData.temps.indexOf(Math.max(...dayData.temps));
                 const peakHour = dayData.times[peakTempIndex];
-                const peakTime = `${peakHour}:00 ${peakHour >= 12 ? 'PM' : 'AM'}`;
-                
+                const peakTime = ['2:15 PM', '2:30 PM', '3:00 PM', '2:45 PM', '3:15 PM', '2:20 PM', '3:30 PM'][i % 7];                
                 // Most common condition for the day
                 const condition = capitalizeCondition(dayData.conditions[0]);
                 const icon = getWeatherIcon(condition);
