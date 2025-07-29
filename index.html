@@ -245,6 +245,53 @@
             width: 100%;
             height: 150px;
             object-fit: cover;
+            cursor: pointer;
+        }
+        
+        .photo-item img:hover {
+            opacity: 0.9;
+        }
+        
+        .photo-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .photo-modal img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+        
+        .photo-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 2001;
+        }
+        
+        .photo-modal-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            color: white;
+            background: rgba(0,0,0,0.7);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
         }
         
         .photo-info {
@@ -440,6 +487,13 @@
             </div>
             <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
         </div>
+    </div>
+    
+    <!-- Full Screen Photo Modal -->
+    <div id="photoViewModal" class="photo-modal">
+        <span class="photo-modal-close" onclick="closePhotoView()">&times;</span>
+        <img id="photoViewImage" src="" alt="Full size photo">
+        <div id="photoViewInfo" class="photo-modal-info"></div>
     </div>
 
     <script>
@@ -880,6 +934,24 @@
             displayPhotos();
         }
         
+        // Full screen photo view functions
+        function openPhotoView(imageSrc, location, date, time, weather, notes) {
+            document.getElementById('photoViewImage').src = imageSrc;
+            document.getElementById('photoViewInfo').innerHTML = `
+                <strong>${location}</strong><br>
+                ${date} ${time}<br>
+                ${weather}<br>
+                ${notes ? `<em>${notes}</em>` : ''}
+            `;
+            document.getElementById('photoViewModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+        
+        function closePhotoView() {
+            document.getElementById('photoViewModal').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+        
         function displayPhotos() {
             const grid = document.getElementById('photoGrid');
             
@@ -902,7 +974,8 @@
                     return `
                         <div class="photo-item">
                             <button class="delete-btn" onclick="deleteEntry(${entry.id}, 'photo')" title="Delete photo">×</button>
-                            <img src="${entry.imageData}" alt="Pasture photo">
+                            <img src="${entry.imageData}" alt="Pasture photo" 
+                                 onclick="openPhotoView('${entry.imageData}', '${entry.location}', '${date}', '${time}', '${entry.weather}', '${entry.notes || ''}')">
                             <div class="photo-info">
                                 <strong>${entry.location}</strong><br>
                                 ${date} ${time}<br>
@@ -977,8 +1050,12 @@
         window.onclick = function(event) {
             const photoModal = document.getElementById('photoModal');
             const noteModal = document.getElementById('noteModal');
+            const photoViewModal = document.getElementById('photoViewModal');
+            
             if (event.target === photoModal || event.target === noteModal) {
                 closeModal();
+            } else if (event.target === photoViewModal) {
+                closePhotoView();
             }
         }
     </script>
