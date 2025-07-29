@@ -1,1 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pasture Tracker</title>
+    <link rel="manifest" href="data:application/json,{%22name%22:%22Pasture%20Tracker%22,%22short_name%22:%22Pasture%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%23228B22%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20fill='%23228B22'%20width='100'%20height='100'/%3E%3Ctext%20y='70'%20font-size='60'%20text-anchor='middle'%20x='50'%20fill='white'%3EP%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22any%22,%22type%22:%22image/svg+xml%22}]}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #87CEEB 0%, #228B22 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.9);
+            padding: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #228B22;
+            margin-bottom: 0.5rem;
+        }
+        
+        .location {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .container {
+            padding: 1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .weather-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .current-weather {
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-radius: 15px;
+            padding: 2rem 1rem;
+        }
+        
+        .weather-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.1;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+        }
+        
+        .weather-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .temp {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #228B22;
+            margin: 0.5rem 0;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.8);
+        }
+        
+        .conditions {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hourly-rain {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        
+        .rain-title {
+            font-size: 0.9rem;
+            color: #1976d2;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .rain-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0d47a1;
+        }
+        
+        .rain-prob {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+        
+        .weather-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .detail-item {
+            text-align: center;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .detail-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .detail-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .alerts {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-title {
+            color: #856404;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .alert-content {
+            color: #664d03;
+        }
+        
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .btn {
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #228B22;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        
+        .photo-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .photo-item {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .photo-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+        
+        .photo-info {
+            padding: 0.5rem;
+            background: #f8f9fa;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        #cameraInput {
+            margin-bottom: 1rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .forecast {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .forecast-day {
+            text-align: center;
+            padding: 1rem 0.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .forecast-date {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .forecast-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .forecast-temps {
+            margin-bottom: 0.5rem;
+        }
+        
+        .forecast-high {
+            font-weight: bold;
+            color: #228B22;
+            font-size: 1.1rem;
+        }
+        
+        .forecast-low {
+            color: #666;
+            font-size: 0.9rem;
+            margin-left: 0.25rem;
+        }
+        
+        .forecast-peak-time {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        
+        .forecast-desc {
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌾 Pasture Tracker</h1>
+        <div class="location">LaGrange - Schulenburg, TX</div>
+    </div>
+    
+    <div class="container">
+        <div class="weather-card">
+            <div id="weatherContent" class="loading">
+                Loading weather data...
+            </div>
+        </div>
+        
+        <div id="alertsSection" class="hidden">
+            <div class="alerts">
+                <div class="alert-title">🌱 Pasture Alert</div>
+                <div id="alertContent" class="alert-content"></div>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="takePhoto()">📸 Log Photo</button>
+            <button class="btn btn-secondary" onclick="addNote()">📝 Add Note</button>
+        </div>
+        
+        <div class="photo-section">
+            <h3>📷 Recent Logs</h3>
+            <div id="photoGrid" class="photo-grid">
+                <!-- Photos will be added here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Photo Modal -->
+    <div id="photoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3>Log Pasture Photo</h3>
+            <input type="file" id="cameraInput" accept="image/*" capture="environment">
+            <div class="form-group">
+                <label for="photoLocation">Location:</label>
+                <input type="text" id="photoLocation" placeholder="e.g., Back pasture, Front field">
+            </div>
+            <div class="form-group">
+                <label for="photoNotes">Notes:</label>
+                <textarea id="photoNotes" rows="3" placeholder="e.g., Broadleaf weeds getting tall, need to shred soon"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="savePhoto()">Save Photo</button>
+        </div>
+    </div>
+    
+    <!-- Note Modal -->
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3>Add Note</h3>
+            <div class="form-group">
+                <label for="noteLocation">Location:</label>
+                <input type="text" id="noteLocation" placeholder="e.g., Back pasture, Front field">
+            </div>
+            <div class="form-group">
+                <label for="noteContent">Note:</label>
+                <textarea id="noteContent" rows="4" placeholder="e.g., Shredded back pasture today, broadleaf weeds were 12 inches tall"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
+        </div>
+    </div>
 
+    <script>
+        // App state
+        let currentWeather = null;
+        let photos = JSON.parse(localStorage.getItem('pasturePhotos') || '[]');
+        let notes = JSON.parse(localStorage.getItem('pastureNotes') || '[]');
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadWeather();
+            displayPhotos();
+            requestNotificationPermission();
+            
+            // Register service worker for PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('data:text/javascript,console.log("SW registered")');
+            }
+        });
+        
+        // Weather functions
+        function getWeatherIcon(condition) {
+            const conditionLower = condition.toLowerCase();
+            
+            // Handle real OpenWeatherMap conditions + our mock conditions
+            if (conditionLower.includes('clear') || conditionLower.includes('sunny')) return '☀️';
+            if (conditionLower.includes('partly') || conditionLower.includes('few clouds')) return '⛅';
+            if (conditionLower.includes('scattered clouds') || conditionLower.includes('broken clouds')) return '☁️';
+            if (conditionLower.includes('overcast') || conditionLower.includes('cloudy')) return '☁️';
+            if (conditionLower.includes('rain') || conditionLower.includes('drizzle')) return '🌧️';
+            if (conditionLower.includes('thunder') || conditionLower.includes('storm')) return '⛈️';
+            if (conditionLower.includes('snow')) return '❄️';
+            if (conditionLower.includes('mist') || conditionLower.includes('fog')) return '🌫️';
+            if (conditionLower.includes('hot')) return '🔥';
+            if (conditionLower.includes('humid')) return '💧';
+            if (conditionLower.includes('wind')) return '💨';
+            
+            return '🌤️'; // Default
+        }
+        
+        function getWeatherBackground(condition, temp) {
+            // Return CSS background based on conditions
+            if (condition.includes('Rain') || condition.includes('Thunder')) {
+                return 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)';
+            } else if (temp > 95) {
+                return 'linear-gradient(135deg, #fd79a8 0%, #e84393 100%)';
+            } else if (condition === 'Sunny') {
+                return 'linear-gradient(135deg, #fdcb6e 0%, #e17055 100%)';
+            } else if (condition.includes('Cloudy')) {
+                return 'linear-gradient(135deg, #ddd 0%, #bbb 100%)';
+            } else {
+                return 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)';
+            }
+        }
+        
+        // Real OpenWeatherMap API key
+        const WEATHER_API_KEY = 'e05c0d74772f4d014f38733dd881d0f7';
+        
+        // LaGrange/Schulenburg area coordinates
+        const LAT = 29.8669;  // LaGrange latitude
+        const LON = -96.8767; // LaGrange longitude
+        
+        async function loadWeather() {
+            try {
+                if (WEATHER_API_KEY === 'YOUR_API_KEY_HERE') {
+                    loadMockWeather();
+                    return;
+                }
+                
+                console.log('Attempting to fetch weather data...');
+                
+                // Try with CORS proxy first
+                const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                const currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${LAT}&lon=${LON}&appid=${WEATHER_API_KEY}&units=imperial`;
+                const hourlyUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${LAT}&lon=${LON}&appid=${WEATHER_API_KEY}&units=imperial`;
+                
+                // Try direct API call first
+                let currentResponse, hourlyResponse;
+                
+                try {
+                    currentResponse = await fetch(currentUrl);
+                    hourlyResponse = await fetch(hourlyUrl);
+                } catch (corsError) {
+                    console.log('Direct API failed, trying CORS proxy...');
+                    // Fallback to CORS proxy
+                    currentResponse = await fetch(proxyUrl + encodeURIComponent(currentUrl));
+                    hourlyResponse = await fetch(proxyUrl + encodeURIComponent(hourlyUrl));
+                }
+                
+                if (!currentResponse.ok) {
+                    throw new Error(`HTTP ${currentResponse.status}: ${currentResponse.statusText}`);
+                }
+                
+                const currentData = await currentResponse.json();
+                const hourlyData = await hourlyResponse.json();
+                
+                console.log('Weather data received:', currentData);
+                
+                // Process real weather data
+                const realWeather = {
+                    temp: Math.round(currentData.main.temp),
+                    condition: capitalizeCondition(currentData.weather[0].description),
+                    humidity: currentData.main.humidity,
+                    windSpeed: Math.round(currentData.wind.speed),
+                    precipitation: currentData.rain ? (currentData.rain['1h'] || 0) : 0,
+                    uvIndex: 8, // UV data requires separate API call
+                    // Next hour rain from forecast
+                    nextHourRain: hourlyData.list[0].rain ? (hourlyData.list[0].rain['3h'] || 0) / 3 : 0,
+                    rainProbability: Math.round(hourlyData.list[0].pop * 100),
+                    // Store forecast data
+                    forecastData: hourlyData.list.slice(0, 5)
+                };
+                
+                currentWeather = realWeather;
+                displayWeather(realWeather);
+                checkAlerts(realWeather);
+                
+                // Show success message
+                console.log('Real weather data loaded successfully!');
+                
+            } catch (error) {
+                console.error('Weather API error:', error);
+                
+                // Show user-friendly error message temporarily
+                document.getElementById('weatherContent').innerHTML = `
+                    <div style="text-align: center; padding: 1rem; background: #fff3cd; border-radius: 10px; margin-bottom: 1rem;">
+                        <p><strong>⚠️ Using Sample Data</strong></p>
+                        <p style="font-size: 0.9rem; color: #666; margin-top: 0.5rem;">
+                            API connection issue - showing realistic sample data for now.<br>
+                            <em>Will retry in 30 minutes...</em>
+                        </p>
+                    </div>
+                `;
+                
+                // Fallback to enhanced mock data after short delay
+                setTimeout(() => {
+                    loadMockWeather();
+                }, 2000);
+            }
+        }
+        
+        function loadMockWeather() {
+            // Fallback mock data
+            const conditions = ['Sunny', 'Partly Cloudy', 'Hot', 'Humid'];
+            const condition = conditions[Math.floor(Math.random() * conditions.length)];
+            
+            const mockWeather = {
+                temp: Math.round(75 + Math.random() * 25),
+                condition: condition,
+                humidity: Math.round(45 + Math.random() * 35),
+                windSpeed: Math.round(5 + Math.random() * 10),
+                precipitation: Math.round(Math.random() * 100) / 100,
+                uvIndex: Math.round(6 + Math.random() * 5),
+                nextHourRain: Math.round(Math.random() * 20) / 100,
+                rainProbability: Math.round(Math.random() * 100)
+            };
+            
+            currentWeather = mockWeather;
+            displayWeather(mockWeather);
+            checkAlerts(mockWeather);
+        }
+        
+        function capitalizeCondition(description) {
+            return description.split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+        
+        function displayWeather(weather) {
+            const weatherIcon = getWeatherIcon(weather.condition);
+            const backgroundGradient = getWeatherBackground(weather.condition, weather.temp);
+            
+            const weatherHtml = `
+                <div class="current-weather">
+                    <div class="weather-background" style="background: ${backgroundGradient}"></div>
+                    <div class="weather-icon">${weatherIcon}</div>
+                    <div class="temp">${weather.temp}°F</div>
+                    <div class="conditions">${weather.condition}</div>
+                    <div class="weather-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Humidity</div>
+                            <div class="detail-value">${weather.humidity}%</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Wind</div>
+                            <div class="detail-value">${weather.windSpeed} mph</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Rain (24h)</div>
+                            <div class="detail-value">${weather.precipitation}"</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">UV Index</div>
+                            <div class="detail-value">${weather.uvIndex}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="hourly-rain">
+                    <div class="rain-title">☔ Next Hour Forecast</div>
+                    <div class="rain-amount">${weather.nextHourRain}" expected</div>
+                    <div class="rain-prob">${weather.rainProbability}% chance of rain</div>
+                </div>
+                <div class="forecast">
+                    ${generateForecast()}
+                </div>
+            `;
+            
+            document.getElementById('weatherContent').innerHTML = weatherHtml;
+        }
+        
+        function generateForecast() {
+            // Use real forecast data if available
+            if (currentWeather && currentWeather.forecastData) {
+                return generateRealForecast(currentWeather.forecastData);
+            }
+            
+            // Fallback to mock forecast
+            const days = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri'];
+            const conditions = ['Sunny', 'Partly Cloudy', 'Hot', 'Cloudy', 'Humid'];
+            const peakTimes = ['2:00 PM', '3:00 PM', '2:30 PM', '3:30 PM', '2:15 PM'];
+            
+            let html = '';
+            
+            for (let i = 0; i < 5; i++) {
+                const baseTemp = 85 + Math.random() * 15;
+                const high = Math.round(baseTemp);
+                const low = Math.round(baseTemp - 15 - Math.random() * 10);
+                
+                const condition = conditions[Math.floor(Math.random() * conditions.length)];
+                const icon = getWeatherIcon(condition);
+                const peakTime = peakTimes[i];
+                
+                html += `
+                    <div class="forecast-day">
+                        <div class="forecast-date">${days[i]}</div>
+                        <div class="forecast-icon">${icon}</div>
+                        <div class="forecast-temps">
+                            <span class="forecast-high">${high}°</span>
+                            <span class="forecast-low">/${low}°</span>
+                        </div>
+                        <div class="forecast-peak-time">Peak: ${peakTime}</div>
+                        <div class="forecast-desc">${condition}</div>
+                    </div>
+                `;
+            }
+            
+            return html;
+        }
+        
+        function generateRealForecast(forecastData) {
+            const days = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri'];
+            let html = '';
+            
+            // Group forecast data by day (API gives 3-hour intervals)
+            const dailyData = {};
+            forecastData.forEach(item => {
+                const date = new Date(item.dt * 1000);
+                const dayKey = date.toDateString();
+                
+                if (!dailyData[dayKey]) {
+                    dailyData[dayKey] = {
+                        temps: [],
+                        conditions: [],
+                        times: []
+                    };
+                }
+                
+                dailyData[dayKey].temps.push(item.main.temp);
+                dailyData[dayKey].conditions.push(item.weather[0].description);
+                dailyData[dayKey].times.push(date.getHours());
+            });
+            
+            const dayKeys = Object.keys(dailyData).slice(0, 5);
+            
+            for (let i = 0; i < Math.min(5, dayKeys.length); i++) {
+                const dayData = dailyData[dayKeys[i]];
+                const high = Math.round(Math.max(...dayData.temps));
+                const low = Math.round(Math.min(...dayData.temps));
+                
+                // Find peak time (when temperature is highest)
+                const peakTempIndex = dayData.temps.indexOf(Math.max(...dayData.temps));
+                const peakHour = dayData.times[peakTempIndex];
+                const peakTime = `${peakHour}:00 ${peakHour >= 12 ? 'PM' : 'AM'}`;
+                
+                // Most common condition for the day
+                const condition = capitalizeCondition(dayData.conditions[0]);
+                const icon = getWeatherIcon(condition);
+                
+                html += `
+                    <div class="forecast-day">
+                        <div class="forecast-date">${days[i] || 'Day ' + (i+1)}</div>
+                        <div class="forecast-icon">${icon}</div>
+                        <div class="forecast-temps">
+                            <span class="forecast-high">${high}°</span>
+                            <span class="forecast-low">/${low}°</span>
+                        </div>
+                        <div class="forecast-peak-time">Peak: ${peakTime}</div>
+                        <div class="forecast-desc">${condition}</div>
+                    </div>
+                `;
+            }
+            
+            return html;
+        }
+        
+        function checkAlerts(weather) {
+            let alerts = [];
+            
+            // Texas-specific alerts
+            if (weather.temp > 95 && weather.humidity > 70) {
+                alerts.push("🔥 Heat stress warning - Monitor cattle closely, ensure adequate water");
+            }
+            
+            if (weather.windSpeed < 10 && weather.temp < 85) {
+                alerts.push("✅ Good shredding conditions - Low wind, manageable temperature");
+            }
+            
+            if (weather.precipitation > 0.5) {
+                alerts.push("💧 Recent rain - Wait 2-3 days before shredding to avoid rutting");
+            }
+            
+            if (weather.humidity > 80 && weather.temp > 80) {
+                alerts.push("🍄 High fungal risk - Monitor for plant diseases");
+            }
+            
+            // Weed-specific alerts for central Texas
+            const month = new Date().getMonth() + 1;
+            if (month >= 4 && month <= 6) {
+                alerts.push("🌿 Peak broadleaf season - Monitor Queen Anne's lace and thistle growth");
+            }
+            
+            if (month >= 6 && month <= 8) {
+                alerts.push("🌳 Mesquite seed season - Check for new seedlings after rain");
+            }
+            
+            if (alerts.length > 0) {
+                document.getElementById('alertContent').innerHTML = alerts.join('<br><br>');
+                document.getElementById('alertsSection').classList.remove('hidden');
+            } else {
+                document.getElementById('alertsSection').classList.add('hidden');
+            }
+        }
+        
+        // Photo functions
+        function takePhoto() {
+            document.getElementById('photoModal').style.display = 'block';
+        }
+        
+        function addNote() {
+            document.getElementById('noteModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('photoModal').style.display = 'none';
+            document.getElementById('noteModal').style.display = 'none';
+            clearModalInputs();
+        }
+        
+        function clearModalInputs() {
+            document.getElementById('photoLocation').value = '';
+            document.getElementById('photoNotes').value = '';
+            document.getElementById('noteLocation').value = '';
+            document.getElementById('noteContent').value = '';
+            document.getElementById('cameraInput').value = '';
+        }
+        
+        function savePhoto() {
+            const fileInput = document.getElementById('cameraInput');
+            const location = document.getElementById('photoLocation').value;
+            const notes = document.getElementById('photoNotes').value;
+            
+            if (fileInput.files.length === 0) {
+                alert('Please take a photo first');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const photoData = {
+                    id: Date.now(),
+                    imageData: e.target.result,
+                    location: location || 'Unknown location',
+                    notes: notes || '',
+                    timestamp: new Date().toISOString(),
+                    weather: currentWeather ? `${currentWeather.temp}°F, ${currentWeather.condition}` : 'Weather unavailable'
+                };
+                
+                photos.unshift(photoData); // Add to beginning
+                localStorage.setItem('pasturePhotos', JSON.stringify(photos));
+                displayPhotos();
+                closeModal();
+                
+                // Show success message
+                alert('Photo saved successfully!');
+            };
+            
+            reader.readAsDataURL(file);
+        }
+        
+        function saveNote() {
+            const location = document.getElementById('noteLocation').value;
+            const content = document.getElementById('noteContent').value;
+            
+            if (!content.trim()) {
+                alert('Please enter a note');
+                return;
+            }
+            
+            const noteData = {
+                id: Date.now(),
+                location: location || 'General',
+                content: content,
+                timestamp: new Date().toISOString(),
+                weather: currentWeather ? `${currentWeather.temp}°F, ${currentWeather.condition}` : 'Weather unavailable'
+            };
+            
+            notes.unshift(noteData);
+            localStorage.setItem('pastureNotes', JSON.stringify(notes));
+            displayPhotos(); // Refresh display to include notes
+            closeModal();
+            
+            alert('Note saved successfully!');
+        }
+        
+        function displayPhotos() {
+            const grid = document.getElementById('photoGrid');
+            
+            // Combine photos and notes, sort by timestamp
+            const allEntries = [
+                ...photos.map(p => ({...p, type: 'photo'})),
+                ...notes.map(n => ({...n, type: 'note'}))
+            ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            if (allEntries.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No entries yet. Take a photo or add a note to get started!</p>';
+                return;
+            }
+            
+            grid.innerHTML = allEntries.map(entry => {
+                const date = new Date(entry.timestamp).toLocaleDateString();
+                const time = new Date(entry.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                if (entry.type === 'photo') {
+                    return `
+                        <div class="photo-item">
+                            <img src="${entry.imageData}" alt="Pasture photo">
+                            <div class="photo-info">
+                                <strong>${entry.location}</strong><br>
+                                ${date} ${time}<br>
+                                ${entry.weather}<br>
+                                ${entry.notes ? `<em>${entry.notes}</em>` : ''}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="photo-item">
+                            <div style="height: 150px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #666;">
+                                📝<br>NOTE
+                            </div>
+                            <div class="photo-info">
+                                <strong>${entry.location}</strong><br>
+                                ${date} ${time}<br>
+                                ${entry.weather}<br>
+                                <em>${entry.content}</em>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+        
+        // Notification functions
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        console.log('Notifications enabled');
+                        // Schedule daily weather check
+                        scheduleNotifications();
+                    }
+                });
+            }
+        }
+        
+        function scheduleNotifications() {
+            // Check for shredding conditions daily at 7 AM
+            const now = new Date();
+            const tomorrow7AM = new Date(now);
+            tomorrow7AM.setDate(tomorrow7AM.getDate() + 1);
+            tomorrow7AM.setHours(7, 0, 0, 0);
+            
+            const msUntil7AM = tomorrow7AM.getTime() - now.getTime();
+            
+            setTimeout(() => {
+                checkSheddingConditions();
+                // Repeat every 24 hours
+                setInterval(checkSheddingConditions, 24 * 60 * 60 * 1000);
+            }, msUntil7AM);
+        }
+        
+        function checkSheddingConditions() {
+            if (currentWeather && currentWeather.windSpeed < 10 && currentWeather.temp < 85) {
+                if (Notification.permission === 'granted') {
+                    new Notification('🌾 Perfect Shredding Weather!', {
+                        body: `${currentWeather.temp}°F, ${currentWeather.windSpeed}mph wind. Great conditions for weed control.`,
+                        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="#228B22" width="100" height="100"/><text y="70" font-size="60" text-anchor="middle" x="50" fill="white">🌾</text></svg>'
+                    });
+                }
+            }
+        }
+        
+        // Refresh weather every 30 minutes
+        setInterval(loadWeather, 30 * 60 * 1000);
+        
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const photoModal = document.getElementById('photoModal');
+            const noteModal = document.getElementById('noteModal');
+            if (event.target === photoModal || event.target === noteModal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
