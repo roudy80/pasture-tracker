@@ -147,12 +147,151 @@
             color: #333;
         }
         
+        .burn-ban-controls {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .county-links {
+            margin-bottom: 1rem;
+        }
+        
+        .county-link {
+            padding: 0.75rem;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            transition: background 0.3s;
+            display: block;
+        }
+        
+        .county-link:hover {
+            background: #0056b3;
+            color: white;
+        }
+        
+        .burn-ban-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 1rem 0;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 25px;
+            background: #ccc;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle-switch.active {
+            background: #dc3545;
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 21px;
+            height: 21px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(25px);
+        }
+        
+        .date-input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-left: 0.5rem;
+        }
+        
         .alerts {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
             border-radius: 10px;
             padding: 1rem;
             margin-bottom: 1rem;
+        }
+        
+        .fire-alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .fire-alert.moderate {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+        }
+        
+        .fire-alert.high {
+            background: #f8d7da;
+            border: 1px solid #dc3545;
+        }
+        
+        .fire-alert.extreme {
+            background: #d1ecf1;
+            border: 1px solid #dc3545;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+        
+        .risk-level {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .risk-low {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .risk-moderate {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .risk-high {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .risk-extreme {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            animation: pulse 2s infinite;
         }
         
         .alert-title {
@@ -434,6 +573,38 @@
             </div>
         </div>
         
+        <div class="burn-ban-controls">
+            <h3>🔥 Burn Ban Status</h3>
+            
+            <div class="county-links">
+                <a href="https://www.co.fayette.tx.us/" target="_blank" class="county-link">
+                    Check Fayette County Status
+                </a>
+            </div>
+            
+            <div class="burn-ban-toggle">
+                <span><strong>Fayette County Burn Ban:</strong></span>
+                <div>
+                    <span id="fayetteStatus">OFF</span>
+                    <div class="toggle-switch" id="fayetteToggle" onclick="toggleBurnBan('fayette')">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="fayetteExpiry" class="hidden">
+                <label>Expires: <input type="date" id="fayetteDate" class="date-input" onchange="updateBurnBanDate('fayette')"></label>
+            </div>
+        </div>
+        
+        <div id="fireAlertsSection" class="hidden">
+            <div class="fire-alert" id="fireAlertContainer">
+                <h3>🔥 Fire Weather Assessment</h3>
+                <div id="fireRiskLevel" class="risk-level risk-low">FIRE RISK: LOW</div>
+                <div id="fireAlertContent" class="alert-content"></div>
+            </div>
+        </div>
+        
         <div id="alertsSection" class="hidden">
             <div class="alerts">
                 <div class="alert-title">🌱 Pasture Alert</div>
@@ -497,35 +668,128 @@
     </div>
 
     <script>
-        // Real OpenWeatherMap API key
+        // Constants
         const WEATHER_API_KEY = '7ab1a33cdc7b4293b4e05f99544978fa';
+        const LAT = 29.8669;
+        const LON = -96.8767;
         
-        // LaGrange/Schulenburg area coordinates
-        const LAT = 29.8669;  // LaGrange latitude
-        const LON = -96.8767; // LaGrange longitude
-        
-        // App state
+        // Global variables
         let currentWeather = null;
         let photos = JSON.parse(localStorage.getItem('pasturePhotos') || '[]');
         let notes = JSON.parse(localStorage.getItem('pastureNotes') || '[]');
+        let burnBanStatus = JSON.parse(localStorage.getItem('burnBanStatus') || '{"fayette": {"active": false, "expires": ""}}');
         
-        // Initialize app
+        // Initialize app when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            loadWeather();
+            initializeBurnBanControls();
             displayPhotos();
             requestNotificationPermission();
+            loadWeather();
             
-            // Register service worker for PWA
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('data:text/javascript,console.log("SW registered")');
             }
         });
         
+        // Burn ban functions
+        function initializeBurnBanControls() {
+            updateBurnBanDisplay('fayette');
+        }
+        
+        function toggleBurnBan(county) {
+            burnBanStatus[county].active = !burnBanStatus[county].active;
+            if (!burnBanStatus[county].active) {
+                burnBanStatus[county].expires = '';
+            }
+            saveBurnBanStatus();
+            updateBurnBanDisplay(county);
+            if (currentWeather) {
+                checkFireWeather(currentWeather);
+            }
+        }
+        
+        function updateBurnBanDate(county) {
+            const dateInput = document.getElementById(county + 'Date');
+            burnBanStatus[county].expires = dateInput.value;
+            saveBurnBanStatus();
+            if (currentWeather) {
+                checkFireWeather(currentWeather);
+            }
+        }
+        
+        function updateBurnBanDisplay(county) {
+            const toggle = document.getElementById(county + 'Toggle');
+            const status = document.getElementById(county + 'Status');
+            const expiryDiv = document.getElementById(county + 'Expiry');
+            const dateInput = document.getElementById(county + 'Date');
+            
+            if (burnBanStatus[county].active) {
+                toggle.classList.add('active');
+                status.textContent = 'ACTIVE';
+                status.style.color = '#dc3545';
+                status.style.fontWeight = 'bold';
+                expiryDiv.classList.remove('hidden');
+                dateInput.value = burnBanStatus[county].expires || '';
+            } else {
+                toggle.classList.remove('active');
+                status.textContent = 'OFF';
+                status.style.color = '#28a745';
+                status.style.fontWeight = 'normal';
+                expiryDiv.classList.add('hidden');
+            }
+        }
+        
+        function saveBurnBanStatus() {
+            localStorage.setItem('burnBanStatus', JSON.stringify(burnBanStatus));
+        }
+        
+        function checkBurnBanExpiry() {
+            const today = new Date().toISOString().split('T')[0];
+            let updated = false;
+            
+            if (burnBanStatus.fayette.active && burnBanStatus.fayette.expires && burnBanStatus.fayette.expires < today) {
+                burnBanStatus.fayette.active = false;
+                burnBanStatus.fayette.expires = '';
+                updated = true;
+            }
+            
+            if (updated) {
+                saveBurnBanStatus();
+                initializeBurnBanControls();
+                if (currentWeather) {
+                    checkFireWeather(currentWeather);
+                }
+            }
+        }
+        
+        function checkBurnBanStatus() {
+            checkBurnBanExpiry();
+            
+            if (burnBanStatus.fayette.active) {
+                let message = "FAYETTE COUNTY BURN BAN - No outdoor burning permitted";
+                if (burnBanStatus.fayette.expires) {
+                    const expireDate = new Date(burnBanStatus.fayette.expires).toLocaleDateString();
+                    message += ` (expires ${expireDate})`;
+                }
+                
+                return {
+                    active: true,
+                    message: message,
+                    source: "Update status above after checking county website"
+                };
+            }
+            
+            return {
+                active: false,
+                message: "No Fayette County burn ban currently active",
+                source: "Check county website to verify and update toggle above"
+            };
+        }
+        
         // Weather functions
         function getWeatherIcon(condition) {
             const conditionLower = condition.toLowerCase();
             
-            // Handle real OpenWeatherMap conditions + our mock conditions
             if (conditionLower.includes('clear') || conditionLower.includes('sunny')) return '☀️';
             if (conditionLower.includes('partly') || conditionLower.includes('few clouds')) return '⛅';
             if (conditionLower.includes('scattered clouds') || conditionLower.includes('broken clouds')) return '☁️';
@@ -538,11 +802,10 @@
             if (conditionLower.includes('humid')) return '💧';
             if (conditionLower.includes('wind')) return '💨';
             
-            return '🌤️'; // Default
+            return '🌤️';
         }
         
         function getWeatherBackground(condition, temp) {
-            // Return CSS background based on conditions
             if (condition.includes('Rain') || condition.includes('Thunder')) {
                 return 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)';
             } else if (temp > 95) {
@@ -556,21 +819,20 @@
             }
         }
         
+        function capitalizeCondition(description) {
+            return description.split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+            ).join(' ');
+        }
+        
         async function loadWeather() {
             try {
-                if (WEATHER_API_KEY === 'YOUR_API_KEY_HERE') {
-                    loadMockWeather();
-                    return;
-                }
-                
                 console.log('Attempting to fetch weather data...');
                 
-                // Try with CORS proxy first
                 const proxyUrl = 'https://api.allorigins.win/raw?url=';
                 const currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${LAT}&lon=${LON}&appid=${WEATHER_API_KEY}&units=imperial`;
                 const hourlyUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${LAT}&lon=${LON}&appid=${WEATHER_API_KEY}&units=imperial`;
                 
-                // Try direct API call first
                 let currentResponse, hourlyResponse;
                 
                 try {
@@ -578,7 +840,6 @@
                     hourlyResponse = await fetch(hourlyUrl);
                 } catch (corsError) {
                     console.log('Direct API failed, trying CORS proxy...');
-                    // Fallback to CORS proxy
                     currentResponse = await fetch(proxyUrl + encodeURIComponent(currentUrl));
                     hourlyResponse = await fetch(proxyUrl + encodeURIComponent(hourlyUrl));
                 }
@@ -592,32 +853,29 @@
                 
                 console.log('Weather data received:', currentData);
                 
-                // Process real weather data
                 const realWeather = {
                     temp: Math.round(currentData.main.temp),
                     condition: capitalizeCondition(currentData.weather[0].description),
                     humidity: currentData.main.humidity,
                     windSpeed: Math.round(currentData.wind.speed),
                     precipitation: currentData.rain ? (currentData.rain['1h'] || 0) : 0,
-                    uvIndex: 8, // UV data requires separate API call
-                    // Next hour rain from forecast
+                    uvIndex: 8,
                     nextHourRain: hourlyData.list[0].rain ? (hourlyData.list[0].rain['3h'] || 0) / 3 : 0,
                     rainProbability: Math.round(hourlyData.list[0].pop * 100),
-                    // Store forecast data
                     forecastData: hourlyData.list.slice(0, 7)
                 };
                 
                 currentWeather = realWeather;
                 displayWeather(realWeather);
                 checkAlerts(realWeather);
+                checkFireWeather(realWeather);
+                checkBurnBanExpiry();
                 
-                // Show success message
                 console.log('Real weather data loaded successfully!');
                 
             } catch (error) {
                 console.error('Weather API error:', error);
                 
-                // Show user-friendly error message temporarily
                 document.getElementById('weatherContent').innerHTML = `
                     <div style="text-align: center; padding: 1rem; background: #fff3cd; border-radius: 10px; margin-bottom: 1rem;">
                         <p><strong>⚠️ Using Sample Data</strong></p>
@@ -628,7 +886,6 @@
                     </div>
                 `;
                 
-                // Fallback to enhanced mock data after short delay
                 setTimeout(() => {
                     loadMockWeather();
                 }, 2000);
@@ -636,7 +893,6 @@
         }
         
         function loadMockWeather() {
-            // Fallback mock data
             const conditions = ['Sunny', 'Partly Cloudy', 'Hot', 'Humid'];
             const condition = conditions[Math.floor(Math.random() * conditions.length)];
             
@@ -654,12 +910,8 @@
             currentWeather = mockWeather;
             displayWeather(mockWeather);
             checkAlerts(mockWeather);
-        }
-        
-        function capitalizeCondition(description) {
-            return description.split(' ').map(word => 
-                word.charAt(0).toUpperCase() + word.slice(1)
-            ).join(' ');
+            checkFireWeather(mockWeather);
+            checkBurnBanExpiry();
         }
         
         function displayWeather(weather) {
@@ -705,12 +957,10 @@
         }
         
         function generateForecast() {
-            // Use real forecast data if available
             if (currentWeather && currentWeather.forecastData) {
                 return generateRealForecast(currentWeather.forecastData);
             }
             
-            // Fallback to mock forecast
             const days = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             const conditions = ['Sunny', 'Partly Cloudy', 'Hot', 'Cloudy', 'Humid'];
             const peakTimes = ['2:15 PM', '2:30 PM', '3:00 PM', '2:45 PM', '3:15 PM', '2:20 PM', '3:30 PM'];
@@ -744,10 +994,9 @@
         }
         
         function generateRealForecast(forecastData) {
-            const days = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri'];
+            const days = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             let html = '';
             
-            // Group forecast data by day (API gives 3-hour intervals)
             const dailyData = {};
             forecastData.forEach(item => {
                 const date = new Date(item.dt * 1000);
@@ -775,7 +1024,6 @@
                 
                 const peakTime = ['2:15 PM', '2:30 PM', '3:00 PM', '2:45 PM', '3:15 PM', '2:20 PM', '3:30 PM'][i % 7];
                 
-                // Most common condition for the day
                 const condition = capitalizeCondition(dayData.conditions[0]);
                 const icon = getWeatherIcon(condition);
                 
@@ -796,10 +1044,97 @@
             return html;
         }
         
+        function checkFireWeather(weather) {
+            let fireAlerts = [];
+            let riskLevel = 'LOW';
+            let alertClass = 'fire-alert';
+            let riskClass = 'risk-low';
+            
+            let riskFactors = 0;
+            
+            if (weather.windSpeed >= 25) {
+                riskFactors += 3;
+                fireAlerts.push("🌪️ EXTREME WIND: " + weather.windSpeed + " mph - No outdoor burning, high fire spread risk");
+            } else if (weather.windSpeed >= 15) {
+                riskFactors += 2;
+                fireAlerts.push("💨 High winds: " + weather.windSpeed + " mph - Avoid outdoor burning");
+            } else if (weather.windSpeed >= 10) {
+                riskFactors += 1;
+            }
+            
+            if (weather.humidity <= 15) {
+                riskFactors += 3;
+                fireAlerts.push("🏜️ CRITICAL HUMIDITY: " + weather.humidity + "% - Extremely dry conditions");
+            } else if (weather.humidity <= 25) {
+                riskFactors += 2;
+                fireAlerts.push("☀️ Low humidity: " + weather.humidity + "% - Increased fire risk");
+            } else if (weather.humidity <= 35) {
+                riskFactors += 1;
+            }
+            
+            if (weather.temp >= 100) {
+                riskFactors += 2;
+                fireAlerts.push("🔥 Extreme heat: " + weather.temp + "°F - High fire danger");
+            } else if (weather.temp >= 90) {
+                riskFactors += 1;
+            }
+            
+            if (weather.precipitation < 0.1) {
+                riskFactors += 1;
+                fireAlerts.push("🌵 Dry conditions: No recent rain - Vegetation is dry");
+            }
+            
+            if (riskFactors >= 6) {
+                riskLevel = 'EXTREME';
+                alertClass = 'fire-alert extreme';
+                riskClass = 'risk-extreme';
+            } else if (riskFactors >= 4) {
+                riskLevel = 'HIGH';
+                alertClass = 'fire-alert high';
+                riskClass = 'risk-high';
+            } else if (riskFactors >= 2) {
+                riskLevel = 'MODERATE';
+                alertClass = 'fire-alert moderate';
+                riskClass = 'risk-moderate';
+            } else {
+                riskLevel = 'LOW';
+                alertClass = 'fire-alert';
+                riskClass = 'risk-low';
+            }
+            
+            const burnBanStatus = checkBurnBanStatus();
+            if (burnBanStatus.active) {
+                fireAlerts.unshift("🚫 " + burnBanStatus.message);
+                if (riskLevel === 'LOW') {
+                    riskLevel = 'MODERATE';
+                    riskClass = 'risk-moderate';
+                    alertClass = 'fire-alert moderate';
+                }
+            }
+            
+            if (riskLevel !== 'LOW') {
+                fireAlerts.push("⚠️ Recommendations: Avoid welding, grinding, or any spark-producing activities");
+                if (riskLevel === 'HIGH' || riskLevel === 'EXTREME') {
+                    fireAlerts.push("🚨 Keep water/fire extinguisher nearby for all outdoor work");
+                }
+            }
+            
+            document.getElementById('fireAlertContainer').className = alertClass;
+            document.getElementById('fireRiskLevel').className = `risk-level ${riskClass}`;
+            document.getElementById('fireRiskLevel').textContent = `🔥 FIRE RISK: ${riskLevel}`;
+            
+            if (fireAlerts.length > 0) {
+                document.getElementById('fireAlertContent').innerHTML = fireAlerts.join('<br><br>');
+            } else {
+                document.getElementById('fireAlertContent').innerHTML = "✅ Current conditions pose minimal fire risk. Normal fire safety precautions apply.";
+            }
+            
+            document.getElementById('fireAlertsSection').classList.remove('hidden');
+        }
+        
         function checkAlerts(weather) {
             let alerts = [];
             
-            // Texas-specific alerts
             if (weather.temp > 95 && weather.humidity > 70) {
                 alerts.push("🔥 Heat stress warning - Monitor cattle closely, ensure adequate water");
             }
@@ -816,7 +1151,6 @@
                 alerts.push("🍄 High fungal risk - Monitor for plant diseases");
             }
             
-            // Weed-specific alerts for central Texas
             const month = new Date().getMonth() + 1;
             if (month >= 4 && month <= 6) {
                 alerts.push("🌿 Peak broadleaf season - Monitor Queen Anne's lace and thistle growth");
@@ -880,12 +1214,11 @@
                     weather: currentWeather ? `${currentWeather.temp}°F, ${currentWeather.condition}` : 'Weather unavailable'
                 };
                 
-                photos.unshift(photoData); // Add to beginning
+                photos.unshift(photoData);
                 localStorage.setItem('pasturePhotos', JSON.stringify(photos));
                 displayPhotos();
                 closeModal();
                 
-                // Show success message
                 alert('Photo saved successfully!');
             };
             
@@ -911,13 +1244,12 @@
             
             notes.unshift(noteData);
             localStorage.setItem('pastureNotes', JSON.stringify(notes));
-            displayPhotos(); // Refresh display to include notes
+            displayPhotos();
             closeModal();
             
             alert('Note saved successfully!');
         }
         
-        // Delete functions
         function deleteEntry(entryId, entryType) {
             if (!confirm('Are you sure you want to delete this entry?')) {
                 return;
@@ -934,7 +1266,6 @@
             displayPhotos();
         }
         
-        // Full screen photo view functions
         function openPhotoView(imageSrc, location, date, time, weather, notes) {
             document.getElementById('photoViewImage').src = imageSrc;
             document.getElementById('photoViewInfo').innerHTML = `
@@ -944,18 +1275,17 @@
                 ${notes ? `<em>${notes}</em>` : ''}
             `;
             document.getElementById('photoViewModal').style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            document.body.style.overflow = 'hidden';
         }
         
         function closePhotoView() {
             document.getElementById('photoViewModal').style.display = 'none';
-            document.body.style.overflow = 'auto'; // Restore scrolling
+            document.body.style.overflow = 'auto';
         }
         
         function displayPhotos() {
             const grid = document.getElementById('photoGrid');
             
-            // Combine photos and notes, sort by timestamp
             const allEntries = [
                 ...photos.map(p => ({...p, type: 'photo'})),
                 ...notes.map(n => ({...n, type: 'note'}))
@@ -1009,7 +1339,6 @@
                 Notification.requestPermission().then(permission => {
                     if (permission === 'granted') {
                         console.log('Notifications enabled');
-                        // Schedule daily weather check
                         scheduleNotifications();
                     }
                 });
@@ -1017,7 +1346,6 @@
         }
         
         function scheduleNotifications() {
-            // Check for shredding conditions daily at 7 AM
             const now = new Date();
             const tomorrow7AM = new Date(now);
             tomorrow7AM.setDate(tomorrow7AM.getDate() + 1);
@@ -1027,7 +1355,6 @@
             
             setTimeout(() => {
                 checkSheddingConditions();
-                // Repeat every 24 hours
                 setInterval(checkSheddingConditions, 24 * 60 * 60 * 1000);
             }, msUntil7AM);
         }
