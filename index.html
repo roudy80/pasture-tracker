@@ -898,7 +898,7 @@
                 <button class="btn btn-primary" onclick="addAnimal()">🐄 Add Animal</button>
                 <button class="btn btn-secondary" onclick="addTreatment()">💉 Add Treatment</button>
                 <button class="btn btn-secondary" onclick="testNotification()">🔔 Test Alert</button>
-                <button class="btn btn-secondary" onclick="checkTreatmentNotifications()">💉 Check Treatments</button>
+                <button class="btn btn-secondary" onclick="checkTreatmentNotifications(); checkBreedingNotifications();">💉 Check Treatments</button>
             </div>
             
             <div class="animal-filters">
@@ -1691,13 +1691,7 @@
                 closeModal();
                 
                 // Clear the file input completely
-                const newInput = document.createElement('input');
-                newInput.type = 'file';
-                newInput.id = 'cameraInput';
-                newInput.accept = 'image/jpeg,image/png';
-                newInput.setAttribute('capture', 'environment');
-                
-                const oldInput = document.getElementById('cameraInput');
+             document.getElementById('cameraInput').value = ''
                 oldInput.parentNode.replaceChild(newInput, oldInput);
                 
                 alert('Photo saved successfully!');
@@ -1966,6 +1960,9 @@
                 if (document.getElementById('animalPurpose')) {
                     document.getElementById('animalPurpose').value = animal.purpose || '';
                 }
+                if (document.getElementById('animalBreedingDate')) {
+        document.getElementById('animalBreedingDate').value = animal.breedingDate || '';
+    }
             }, 50);
             
             // Store the animal ID for saving
@@ -2050,7 +2047,10 @@
                             <option value="heifer">Heifer</option>
                         </select>
                     </div>
-                `;
+                    <div class="form-group">
+            <label for="animalBreedingDate">Last Breeding Date:</label>
+            <input type="date" id="animalBreedingDate" title="283 day gestation period">
+        </div>                `;
             } else if (type === 'horses') {
                 fieldsHtml = `
                     <div class="form-group">
@@ -2070,7 +2070,10 @@
                             <option value="gelding">Gelding</option>
                         </select>
                     </div>
-                `;
+                    <div class="form-group">
+            <label for="animalBreedingDate">Last Breeding Date:</label>
+            <input type="date" id="animalBreedingDate" title="340 day gestation period">
+        </div>                `;
             } else if (type === 'chickens') {
                 fieldsHtml = `
                     <div class="form-group">
@@ -2150,7 +2153,8 @@
             if (colorEl) animalData.color = colorEl.value.trim();
             if (countEl) animalData.count = countEl.value;
             if (purposeEl) animalData.purpose = purposeEl.value;
-            
+            const breedingDateEl = document.getElementById('animalBreedingDate');
+if (breedingDateEl) animalData.breedingDate = breedingDateEl.value;            
             if (editId) {
                 // Edit existing animal
                 const animalIndex = animals.findIndex(a => a.id == editId);
@@ -2363,10 +2367,45 @@
                 }
                 
                 // Build details string based on animal type
-                let details = '';
-                if (animal.type === 'cattle') {
-                    details = [animal.breed, animal.gender, animal.weight ? `${animal.weight} lbs` : ''].filter(Boolean).join(' • ');
-                } else if (animal.type === 'horses') {
+                // Build details string based on animal type
+let details = '';
+let breedingInfo = '';
+
+if (animal.type === 'cattle') {
+    details = [animal.breed, animal.gender, animal.weight ? `${animal.weight} lbs` : ''].filter(Boolean).join(' • ');
+    if (animal.breedingDate) {
+        const breedDate = new Date(animal.breedingDate);
+        const dueDate = new Date(breedDate);
+        dueDate.setDate(breedDate.getDate() + 283); // 283 day gestation
+        const today = new Date();
+        const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+        
+        if (daysUntilDue < 0) {
+            breedingInfo = `Calving overdue ${Math.abs(daysUntilDue)} days`;
+        } else if (daysUntilDue <= 14) {
+            breedingInfo = daysUntilDue === 0 ? 'Calving due today!' : `Calving due in ${daysUntilDue} days`;
+        } else {
+            breedingInfo = `Calving due: ${dueDate.toLocaleDateString()}`;
+        }
+    }
+} else if (animal.type === 'horses') {
+    details = [animal.breed, animal.color, animal.gender].filter(Boolean).join(' • ');
+    if (animal.breedingDate) {
+        const breedDate = new Date(animal.breedingDate);
+        const dueDate = new Date(breedDate);
+        dueDate.setDate(breedDate.getDate() + 340); // 340 day gestation
+        const today = new Date();
+        const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+        
+        if (daysUntilDue < 0) {
+            breedingInfo = `Foaling overdue ${Math.abs(daysUntilDue)} days`;
+        } else if (daysUntilDue <= 14) {
+            breedingInfo = daysUntilDue === 0 ? 'Foaling due today!' : `Foaling due in ${daysUntilDue} days`;
+        } else {
+            breedingInfo = `Foaling due: ${dueDate.toLocaleDateString()}`;
+        }
+    }
+} else if (animal.type === 'horses') {
                     details = [animal.breed, animal.color, animal.gender].filter(Boolean).join(' • ');
                 } else if (animal.type === 'chickens') {
                     details = [animal.count ? `${animal.count} birds` : '', animal.breed, animal.purpose].filter(Boolean).join(' • ');
@@ -2381,6 +2420,7 @@
                                 <h3 class="animal-name">${icon} ${animal.name}</h3>
                                 <div class="animal-type">${animal.type}</div>
                                 ${details ? `<div style="font-size: 0.8rem; color: #888; margin-top: 0.25rem;">${details}</div>` : ''}
+${breedingInfo ? `<div style="font-size: 0.8rem; color: #228B22; margin-top: 0.25rem; font-weight: bold;">${breedingInfo}</div>` : ''}
                             </div>
                             <div class="pasture-actions">
                                 <button class="btn-small btn-edit" onclick="editAnimal(${animal.id})">Edit</button>
@@ -2661,7 +2701,59 @@
                 }
             });
         }
+        function checkBreedingNotifications() {
+    if (Notification.permission !== 'granted') return;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Check cattle and horses with breeding dates
+    const breedingAnimals = animals.filter(a => 
+        (a.type === 'cattle' || a.type === 'horses') && a.breedingDate
+    );
+    
+    breedingAnimals.forEach(animal => {
+        const breedDate = new Date(animal.breedingDate);
+        const dueDate = new Date(breedDate);
         
+        // Add gestation period
+        if (animal.type === 'cattle') {
+            dueDate.setDate(breedDate.getDate() + 283);
+        } else if (animal.type === 'horses') {
+            dueDate.setDate(breedDate.getDate() + 340);
+        }
+        
+        dueDate.setHours(0, 0, 0, 0);
+        const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+        
+        const animalIcon = getAnimalIcon(animal.type);
+        const eventType = animal.type === 'cattle' ? 'Calving' : 'Foaling';
+        let notificationTitle = '';
+        let notificationBody = '';
+        
+        if (daysUntilDue < 0) {
+            // Overdue
+            notificationTitle = `${animalIcon} ${eventType} Overdue!`;
+            notificationBody = `${animal.name} - ${eventType.toLowerCase()} was due ${Math.abs(daysUntilDue)} days ago`;
+        } else if (daysUntilDue === 0) {
+            // Due today
+            notificationTitle = `${animalIcon} ${eventType} Due Today!`;
+            notificationBody = `${animal.name} - ${eventType.toLowerCase()} is due today`;
+        } else if (daysUntilDue <= 7) {
+            // Due soon (within 7 days)
+            notificationTitle = `${animalIcon} ${eventType} Due Soon`;
+            notificationBody = `${animal.name} - ${eventType.toLowerCase()} due in ${daysUntilDue} days`;
+        }
+        
+        // Send notification if we have a message
+        if (notificationTitle) {
+            new Notification(notificationTitle, {
+                body: notificationBody,
+                icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="#228B22" width="100" height="100"/><text y="70" font-size="60" text-anchor="middle" x="50" fill="white">🐄</text></svg>'
+            });
+        }
+    });
+}        
         function scheduleNotifications() {
             const now = new Date();
             const tomorrow7AM = new Date(now);
@@ -2673,10 +2765,10 @@
             setTimeout(() => {
                 checkSheddingConditions();
                 checkTreatmentNotifications();
-                setInterval(() => {
+                checkBreedingNotifications();                        setInterval(() => {
                     checkSheddingConditions();
                     checkTreatmentNotifications();
-                }, 24 * 60 * 60 * 1000);
+                    checkBreedingNotifications();                    }, 24 * 60 * 60 * 1000);
             }, msUntil7AM);
         }
         
