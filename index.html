@@ -11,7 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #87CEEB 0%, #228B22 100%);
@@ -363,7 +363,7 @@
         
         .action-buttons {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 1rem;
             margin: 1rem 0;
         }
@@ -540,12 +540,129 @@
         }
         
         .form-group input,
-        .form-group textarea {
+        .form-group textarea,
+        .form-group select {
             width: 100%;
             padding: 0.75rem;
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 1rem;
+        }
+        
+        .pastures-container {
+            margin-top: 1rem;
+        }
+        
+        .pasture-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #228B22;
+        }
+        
+        .pasture-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+        
+        .pasture-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #228B22;
+            margin: 0;
+        }
+        
+        .pasture-stats {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .pasture-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-edit {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-small:hover {
+            opacity: 0.8;
+        }
+        
+        .pasture-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .info-item {
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.2rem;
+        }
+        
+        .info-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .empty-pasture {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+        
+        .assign-photo-btn {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: rgba(34, 139, 34, 0.9);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 6px;
+            font-size: 10px;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        .assign-photo-btn:hover {
+            background: rgba(34, 139, 34, 1);
         }
         
         #cameraInput {
@@ -622,7 +739,7 @@
         <h1>🌾 Pasture Tracker</h1>
         <div class="location">LaGrange - Schulenburg, TX</div>
     </div>
-    
+
     <div class="container">
         <div class="tab-navigation">
             <button class="tab-button active" onclick="switchTab('weather')">🌤️ Weather</button>
@@ -680,19 +797,27 @@
         <!-- Pasture Tab -->
         <div id="pastureTab" class="tab-content">
             <div class="action-buttons">
-                <button class="btn btn-primary" onclick="takePhoto()">📸 Log Photo</button>
+                <button class="btn btn-primary" onclick="managePastures()">🌾 Manage Pastures</button>
+                <button class="btn btn-secondary" onclick="takePhoto()">📸 Log Photo</button>
                 <button class="btn btn-secondary" onclick="addNote()">📝 Add Note</button>
             </div>
             
-            <div class="photo-section">
-                <h3>📷 Recent Logs</h3>
-                <div id="photoGrid" class="photo-grid">
-                    <!-- Photos will be added here -->
+            <div id="pasturesList" class="pastures-container">
+                <!-- Individual pastures will be displayed here -->
+            </div>
+            
+            <div id="unassignedPhotos" class="photo-section hidden">
+                <h3>📷 Unassigned Photos</h3>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">
+                    Photos not yet assigned to a pasture. Click "Assign to Pasture" to organize them.
+                </p>
+                <div id="unassignedGrid" class="photo-grid">
+                    <!-- Unassigned photos will be added here -->
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Photo Modal -->
     <div id="photoModal" class="modal">
         <div class="modal-content">
@@ -700,8 +825,14 @@
             <h3>Log Pasture Photo</h3>
             <input type="file" id="cameraInput" accept="image/jpeg,image/png" capture="environment">
             <div class="form-group">
-                <label for="photoLocation">Location:</label>
-                <input type="text" id="photoLocation" placeholder="e.g., Back pasture, Front field">
+                <label for="photoPasture">Pasture:</label>
+                <select id="photoPasture">
+                    <option value="">Select a pasture...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="photoLocation">Specific Location:</label>
+                <input type="text" id="photoLocation" placeholder="e.g., Near gate, West fence line">
             </div>
             <div class="form-group">
                 <label for="photoNotes">Notes:</label>
@@ -710,15 +841,21 @@
             <button class="btn btn-primary" onclick="savePhoto()">Save Photo</button>
         </div>
     </div>
-    
+
     <!-- Note Modal -->
     <div id="noteModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
             <h3>Add Note</h3>
             <div class="form-group">
-                <label for="noteLocation">Location:</label>
-                <input type="text" id="noteLocation" placeholder="e.g., Back pasture, Front field">
+                <label for="notePasture">Pasture:</label>
+                <select id="notePasture">
+                    <option value="">Select a pasture...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="noteLocation">Specific Location:</label>
+                <input type="text" id="noteLocation" placeholder="e.g., Near gate, West fence line">
             </div>
             <div class="form-group">
                 <label for="noteContent">Note:</label>
@@ -727,7 +864,46 @@
             <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
         </div>
     </div>
-    
+
+    <!-- Pasture Management Modal -->
+    <div id="pastureModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3 id="pastureModalTitle">Add New Pasture</h3>
+            <div class="form-group">
+                <label for="pastureName">Pasture Name:</label>
+                <input type="text" id="pastureName" placeholder="e.g., Back 40, Front Field, South Pasture">
+            </div>
+            <div class="form-group">
+                <label for="pastureAcres">Approximate Acres:</label>
+                <input type="number" id="pastureAcres" placeholder="e.g., 25" step="0.1" min="0">
+            </div>
+            <div class="form-group">
+                <label for="pastureNotes">Description/Notes:</label>
+                <textarea id="pastureNotes" rows="2" placeholder="e.g., Main grazing area, tends to get wet in low spots"></textarea>
+            </div>
+            <input type="hidden" id="pastureEditId">
+            <button class="btn btn-primary" onclick="savePasture()">Save Pasture</button>
+            <button class="btn btn-secondary" id="deletePastureBtn" onclick="deletePasture()" style="display: none;">Delete Pasture</button>
+        </div>
+    </div>
+
+    <!-- Photo Assignment Modal -->
+    <div id="assignModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3>Assign Photo to Pasture</h3>
+            <div class="form-group">
+                <label for="assignPasture">Select Pasture:</label>
+                <select id="assignPasture">
+                    <option value="">Choose a pasture...</option>
+                </select>
+            </div>
+            <input type="hidden" id="assignPhotoId">
+            <button class="btn btn-primary" onclick="assignPhotoToPasture()">Assign Photo</button>
+        </div>
+    </div>
+
     <!-- Full Screen Photo Modal -->
     <div id="photoViewModal" class="photo-modal">
         <span class="photo-modal-close" onclick="closePhotoView()">&times;</span>
@@ -745,12 +921,13 @@
         let currentWeather = null;
         let photos = JSON.parse(localStorage.getItem('pasturePhotos') || '[]');
         let notes = JSON.parse(localStorage.getItem('pastureNotes') || '[]');
+        let pastures = JSON.parse(localStorage.getItem('pastures') || '[]');
         let burnBanStatus = JSON.parse(localStorage.getItem('burnBanStatus') || '{"fayette": {"active": false, "expires": ""}}');
         
         // Initialize app when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initializeBurnBanControls();
-            displayPhotos();
+            displayPastures();
             requestNotificationPermission();
             loadWeather();
             
@@ -1257,33 +1434,48 @@
         
         // Photo functions
         function takePhoto() {
+            updatePastureDropdowns();
             // Clear any previous file selection
             document.getElementById('cameraInput').value = '';
             document.getElementById('photoModal').style.display = 'block';
         }
         
         function addNote() {
+            updatePastureDropdowns();
             document.getElementById('noteModal').style.display = 'block';
         }
         
         function closeModal() {
             document.getElementById('photoModal').style.display = 'none';
             document.getElementById('noteModal').style.display = 'none';
+            document.getElementById('pastureModal').style.display = 'none';
+            document.getElementById('assignModal').style.display = 'none';
             clearModalInputs();
         }
         
         function clearModalInputs() {
             document.getElementById('photoLocation').value = '';
             document.getElementById('photoNotes').value = '';
+            document.getElementById('photoPasture').value = '';
             document.getElementById('noteLocation').value = '';
             document.getElementById('noteContent').value = '';
+            document.getElementById('notePasture').value = '';
             document.getElementById('cameraInput').value = '';
+            document.getElementById('pastureName').value = '';
+            document.getElementById('pastureAcres').value = '';
+            document.getElementById('pastureNotes').value = '';
+            document.getElementById('pastureEditId').value = '';
+            document.getElementById('assignPasture').value = '';
+            document.getElementById('assignPhotoId').value = '';
+            document.getElementById('pastureModalTitle').textContent = 'Add New Pasture';
+            document.getElementById('deletePastureBtn').style.display = 'none';
         }
         
         function savePhoto() {
             const fileInput = document.getElementById('cameraInput');
             const location = document.getElementById('photoLocation').value;
             const notes = document.getElementById('photoNotes').value;
+            const pastureId = document.getElementById('photoPasture').value;
             
             if (fileInput.files.length === 0) {
                 alert('Please take a photo first');
@@ -1297,6 +1489,7 @@
                 const photoData = {
                     id: Date.now(),
                     imageData: e.target.result,
+                    pastureId: pastureId || null,
                     location: location || 'Unknown location',
                     notes: notes || '',
                     timestamp: new Date().toISOString(),
@@ -1305,7 +1498,7 @@
                 
                 photos.unshift(photoData);
                 localStorage.setItem('pasturePhotos', JSON.stringify(photos));
-                displayPhotos();
+                displayPastures();
                 closeModal();
                 
                 // Clear the file input completely
@@ -1327,6 +1520,7 @@
         function saveNote() {
             const location = document.getElementById('noteLocation').value;
             const content = document.getElementById('noteContent').value;
+            const pastureId = document.getElementById('notePasture').value;
             
             if (!content.trim()) {
                 alert('Please enter a note');
@@ -1335,6 +1529,7 @@
             
             const noteData = {
                 id: Date.now(),
+                pastureId: pastureId || null,
                 location: location || 'General',
                 content: content,
                 timestamp: new Date().toISOString(),
@@ -1343,7 +1538,7 @@
             
             notes.unshift(noteData);
             localStorage.setItem('pastureNotes', JSON.stringify(notes));
-            displayPhotos();
+            displayPastures();
             closeModal();
             
             alert('Note saved successfully!');
@@ -1362,7 +1557,160 @@
                 localStorage.setItem('pastureNotes', JSON.stringify(notes));
             }
             
-            displayPhotos();
+            displayPastures();
+        }
+        
+        // Pasture Management Functions
+        function managePastures() {
+            document.getElementById('pastureModal').style.display = 'block';
+        }
+        
+        function savePasture() {
+            const name = document.getElementById('pastureName').value.trim();
+            const acres = parseFloat(document.getElementById('pastureAcres').value) || 0;
+            const notes = document.getElementById('pastureNotes').value.trim();
+            const editId = document.getElementById('pastureEditId').value;
+            
+            if (!name) {
+                alert('Please enter a pasture name');
+                return;
+            }
+            
+            // Check for duplicate names (except when editing the same pasture)
+            const existing = pastures.find(p => p.name.toLowerCase() === name.toLowerCase() && p.id !== editId);
+            if (existing) {
+                alert('A pasture with this name already exists');
+                return;
+            }
+            
+            if (editId) {
+                // Edit existing pasture
+                const pastureIndex = pastures.findIndex(p => p.id == editId);
+                if (pastureIndex !== -1) {
+                    pastures[pastureIndex] = {
+                        ...pastures[pastureIndex],
+                        name: name,
+                        acres: acres,
+                        notes: notes
+                    };
+                }
+            } else {
+                // Add new pasture
+                const pastureData = {
+                    id: Date.now(),
+                    name: name,
+                    acres: acres,
+                    notes: notes,
+                    created: new Date().toISOString()
+                };
+                pastures.push(pastureData);
+            }
+            
+            localStorage.setItem('pastures', JSON.stringify(pastures));
+            displayPastures();
+            closeModal();
+            alert(editId ? 'Pasture updated successfully!' : 'Pasture added successfully!');
+        }
+        
+        function editPasture(pastureId) {
+            const pasture = pastures.find(p => p.id == pastureId);
+            if (!pasture) return;
+            
+            document.getElementById('pastureName').value = pasture.name;
+            document.getElementById('pastureAcres').value = pasture.acres || '';
+            document.getElementById('pastureNotes').value = pasture.notes || '';
+            document.getElementById('pastureEditId').value = pasture.id;
+            document.getElementById('pastureModalTitle').textContent = 'Edit Pasture';
+            document.getElementById('deletePastureBtn').style.display = 'inline-block';
+            document.getElementById('pastureModal').style.display = 'block';
+        }
+        
+        function deletePasture() {
+            const editId = document.getElementById('pastureEditId').value;
+            if (!editId) return;
+            
+            const pasture = pastures.find(p => p.id == editId);
+            if (!pasture) return;
+            
+            // Check if pasture has photos/notes
+            const hasPhotos = photos.some(p => p.pastureId == editId);
+            const hasNotes = notes.some(n => n.pastureId == editId);
+            
+            let confirmMessage = `Are you sure you want to delete "${pasture.name}"?`;
+            if (hasPhotos || hasNotes) {
+                confirmMessage += '\n\nThis will move all photos and notes in this pasture to "Unassigned".';
+            }
+            
+            if (!confirm(confirmMessage)) return;
+            
+            // Remove pasture
+            pastures = pastures.filter(p => p.id != editId);
+            localStorage.setItem('pastures', JSON.stringify(pastures));
+            
+            // Move photos and notes to unassigned
+            photos.forEach(photo => {
+                if (photo.pastureId == editId) {
+                    photo.pastureId = null;
+                }
+            });
+            notes.forEach(note => {
+                if (note.pastureId == editId) {
+                    note.pastureId = null;
+                }
+            });
+            
+            localStorage.setItem('pasturePhotos', JSON.stringify(photos));
+            localStorage.setItem('pastureNotes', JSON.stringify(notes));
+            
+            displayPastures();
+            closeModal();
+            alert('Pasture deleted successfully!');
+        }
+        
+        function updatePastureDropdowns() {
+            const photoSelect = document.getElementById('photoPasture');
+            const noteSelect = document.getElementById('notePasture');
+            const assignSelect = document.getElementById('assignPasture');
+            
+            [photoSelect, noteSelect, assignSelect].forEach(select => {
+                // Clear existing options except the first one
+                while (select.children.length > 1) {
+                    select.removeChild(select.lastChild);
+                }
+                
+                // Add pasture options
+                pastures.forEach(pasture => {
+                    const option = document.createElement('option');
+                    option.value = pasture.id;
+                    option.textContent = pasture.name;
+                    select.appendChild(option);
+                });
+            });
+        }
+        
+        function assignPhoto(photoId) {
+            updatePastureDropdowns();
+            document.getElementById('assignPhotoId').value = photoId;
+            document.getElementById('assignModal').style.display = 'block';
+        }
+        
+        function assignPhotoToPasture() {
+            const photoId = document.getElementById('assignPhotoId').value;
+            const pastureId = document.getElementById('assignPasture').value;
+            
+            if (!pastureId) {
+                alert('Please select a pasture');
+                return;
+            }
+            
+            const photo = photos.find(p => p.id == photoId);
+            if (photo) {
+                photo.pastureId = pastureId;
+                localStorage.setItem('pasturePhotos', JSON.stringify(photos));
+                displayPastures();
+                closeModal();
+                alert('Photo assigned successfully!');
+            }
         }
         
         function openPhotoView(imageSrc, location, date, time, weather, notes) {
@@ -1382,53 +1730,161 @@
             document.body.style.overflow = 'auto';
         }
         
-        function displayPhotos() {
-            const grid = document.getElementById('photoGrid');
+        function displayPastures() {
+            const container = document.getElementById('pasturesList');
+            const unassignedSection = document.getElementById('unassignedPhotos');
+            const unassignedGrid = document.getElementById('unassignedGrid');
             
-            const allEntries = [
-                ...photos.map(p => ({...p, type: 'photo'})),
-                ...notes.map(n => ({...n, type: 'note'}))
+            // Get unassigned photos and notes
+            const unassignedPhotos = photos.filter(p => !p.pastureId);
+            const unassignedNotes = notes.filter(n => !n.pastureId);
+            const unassignedEntries = [
+                ...unassignedPhotos.map(p => ({...p, type: 'photo'})),
+                ...unassignedNotes.map(n => ({...n, type: 'note'}))
             ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
             
-            if (allEntries.length === 0) {
-                grid.innerHTML = '<p style="text-align: center; color: #666; grid-column: 1/-1;">No entries yet. Take a photo or add a note to get started!</p>';
+            // Display unassigned section
+            if (unassignedEntries.length > 0) {
+                unassignedSection.classList.remove('hidden');
+                unassignedGrid.innerHTML = unassignedEntries.map(entry => {
+                    const date = new Date(entry.timestamp).toLocaleDateString();
+                    const time = new Date(entry.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    if (entry.type === 'photo') {
+                        return `
+                            <div class="photo-item">
+                                <button class="delete-btn" onclick="deleteEntry(${entry.id}, 'photo')" title="Delete photo">×</button>
+                                <button class="assign-photo-btn" onclick="assignPhoto(${entry.id})" title="Assign to pasture">📍</button>
+                                <img src="${entry.imageData}" alt="Pasture photo" 
+                                     onclick="openPhotoView('${entry.imageData}', '${entry.location}', '${date}', '${time}', '${entry.weather}', '${entry.notes || ''}')">
+                                <div class="photo-info">
+                                    <strong>${entry.location}</strong><br>
+                                    ${date} ${time}<br>
+                                    ${entry.weather}<br>
+                                    ${entry.notes ? `<em>${entry.notes}</em>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        return `
+                            <div class="photo-item">
+                                <button class="delete-btn" onclick="deleteEntry(${entry.id}, 'note')" title="Delete note">×</button>
+                                <div style="height: 150px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #666;">
+                                    📝<br>NOTE
+                                </div>
+                                <div class="photo-info">
+                                    <strong>${entry.location}</strong><br>
+                                    ${date} ${time}<br>
+                                    ${entry.weather}<br>
+                                    <em>${entry.content}</em>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+            } else {
+                unassignedSection.classList.add('hidden');
+            }
+            
+            // Display pastures
+            if (pastures.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-pasture">
+                        <h3>🌾 No Pastures Yet</h3>
+                        <p>Click "Manage Pastures" above to add your first pasture!</p>
+                        <p style="margin-top: 1rem;"><em>Organizing your ranch by individual pastures makes tracking much easier.</em></p>
+                    </div>
+                `;
                 return;
             }
             
-            grid.innerHTML = allEntries.map(entry => {
-                const date = new Date(entry.timestamp).toLocaleDateString();
-                const time = new Date(entry.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            container.innerHTML = pastures.map(pasture => {
+                const pasturePhotos = photos.filter(p => p.pastureId == pasture.id);
+                const pastureNotes = notes.filter(n => n.pastureId == pasture.id);
+                const allEntries = [
+                    ...pasturePhotos.map(p => ({...p, type: 'photo'})),
+                    ...pastureNotes.map(n => ({...n, type: 'note'}))
+                ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                 
-                if (entry.type === 'photo') {
-                    return `
-                        <div class="photo-item">
-                            <button class="delete-btn" onclick="deleteEntry(${entry.id}, 'photo')" title="Delete photo">×</button>
-                            <img src="${entry.imageData}" alt="Pasture photo" 
-                                 onclick="openPhotoView('${entry.imageData}', '${entry.location}', '${date}', '${time}', '${entry.weather}', '${entry.notes || ''}')">
-                            <div class="photo-info">
-                                <strong>${entry.location}</strong><br>
-                                ${date} ${time}<br>
-                                ${entry.weather}<br>
-                                ${entry.notes ? `<em>${entry.notes}</em>` : ''}
+                const lastUpdate = allEntries.length > 0 ? 
+                    new Date(allEntries[0].timestamp).toLocaleDateString() : 
+                    'No entries yet';
+                
+                return `
+                    <div class="pasture-card">
+                        <div class="pasture-header">
+                            <div>
+                                <h3 class="pasture-name">${pasture.name}</h3>
+                                <div class="pasture-stats">
+                                    ${pasture.acres ? `${pasture.acres} acres • ` : ''}
+                                    ${allEntries.length} entries • Last: ${lastUpdate}
+                                </div>
+                            </div>
+                            <div class="pasture-actions">
+                                <button class="btn-small btn-edit" onclick="editPasture(${pasture.id})">Edit</button>
                             </div>
                         </div>
-                    `;
-                } else {
-                    return `
-                        <div class="photo-item">
-                            <button class="delete-btn" onclick="deleteEntry(${entry.id}, 'note')" title="Delete note">×</button>
-                            <div style="height: 150px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #666;">
-                                📝<br>NOTE
+                        
+                        ${pasture.notes ? `<p style="color: #666; font-style: italic; margin-bottom: 1rem;">${pasture.notes}</p>` : ''}
+                        
+                        <div class="pasture-info">
+                            <div class="info-item">
+                                <div class="info-label">Photos</div>
+                                <div class="info-value">${pasturePhotos.length}</div>
                             </div>
-                            <div class="photo-info">
-                                <strong>${entry.location}</strong><br>
-                                ${date} ${time}<br>
-                                ${entry.weather}<br>
-                                <em>${entry.content}</em>
+                            <div class="info-item">
+                                <div class="info-label">Notes</div>
+                                <div class="info-value">${pastureNotes.length}</div>
                             </div>
                         </div>
-                    `;
-                }
+                        
+                        ${allEntries.length > 0 ? `
+                            <div class="photo-grid">
+                                ${allEntries.slice(0, 6).map(entry => {
+                                    const date = new Date(entry.timestamp).toLocaleDateString();
+                                    const time = new Date(entry.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                                    
+                                    if (entry.type === 'photo') {
+                                        return `
+                                            <div class="photo-item">
+                                                <button class="delete-btn" onclick="deleteEntry(${entry.id}, 'photo')" title="Delete photo">×</button>
+                                                <img src="${entry.imageData}" alt="Pasture photo" 
+                                                     onclick="openPhotoView('${entry.imageData}', '${pasture.name} - ${entry.location}', '${date}', '${time}', '${entry.weather}', '${entry.notes || ''}')">
+                                                <div class="photo-info">
+                                                    <strong>${entry.location}</strong><br>
+                                                    ${date} ${time}<br>
+                                                    ${entry.weather}<br>
+                                                    ${entry.notes ? `<em>${entry.notes}</em>` : ''}
+                                                </div>
+                                            </div>
+                                        `;
+                                    } else {
+                                        return `
+                                            <div class="photo-item">
+                                                <button class="delete-btn" onclick="deleteEntry(${entry.id}, 'note')" title="Delete note">×</button>
+                                                <div style="height: 150px; background: #f8f9fa; display: flex; align-items: center; justify-content: center; color: #666;">
+                                                    📝<br>NOTE
+                                                </div>
+                                                <div class="photo-info">
+                                                    <strong>${entry.location}</strong><br>
+                                                    ${date} ${time}<br>
+                                                    ${entry.weather}<br>
+                                                    <em>${entry.content}</em>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }
+                                }).join('')}
+                            </div>
+                            ${allEntries.length > 6 ? `<p style="text-align: center; color: #666; margin-top: 0.5rem; font-size: 0.9rem;">... and ${allEntries.length - 6} more entries</p>` : ''}
+                        ` : `
+                            <div class="empty-pasture">
+                                <p>📷 No photos or notes yet for this pasture</p>
+                                <p style="font-size: 0.9rem; color: #888;">Take a photo or add a note to start tracking!</p>
+                            </div>
+                        `}
+                    </div>
+                `;
             }).join('');
         }
         
@@ -1476,9 +1932,12 @@
         window.onclick = function(event) {
             const photoModal = document.getElementById('photoModal');
             const noteModal = document.getElementById('noteModal');
+            const pastureModal = document.getElementById('pastureModal');
+            const assignModal = document.getElementById('assignModal');
             const photoViewModal = document.getElementById('photoViewModal');
             
-            if (event.target === photoModal || event.target === noteModal) {
+            if (event.target === photoModal || event.target === noteModal || 
+                event.target === pastureModal || event.target === assignModal) {
                 closeModal();
             } else if (event.target === photoViewModal) {
                 closePhotoView();
