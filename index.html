@@ -607,6 +607,10 @@
             color: white;
         }
         
+        .btn-delete:hover {
+            background: #c82333;
+        }
+        
         .btn-small:hover {
             opacity: 0.8;
         }
@@ -894,6 +898,7 @@
                 <button class="btn btn-primary" onclick="addAnimal()">🐄 Add Animal</button>
                 <button class="btn btn-secondary" onclick="addTreatment()">💉 Add Treatment</button>
                 <button class="btn btn-secondary" onclick="testNotification()">🔔 Test Alert</button>
+                <button class="btn btn-secondary" onclick="checkTreatmentNotifications()">💉 Check Treatments</button>
             </div>
             
             <div class="animal-filters">
@@ -1057,6 +1062,18 @@
                 <textarea id="treatmentNotes" rows="3" placeholder="e.g., 10cc injection, left side"></textarea>
             </div>
             <button class="btn btn-primary" onclick="saveTreatment()">Save Treatment</button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content">
+            <h3>⚠️ Confirm Deletion</h3>
+            <p id="deleteConfirmMessage"></p>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-delete" id="confirmDeleteBtn" style="background: #dc3545; color: white;">Delete</button>
+            </div>
         </div>
     </div>
 
@@ -1612,6 +1629,7 @@
             document.getElementById('assignModal').style.display = 'none';
             document.getElementById('animalModal').style.display = 'none';
             document.getElementById('treatmentModal').style.display = 'none';
+            document.getElementById('deleteConfirmModal').style.display = 'none';
             clearModalInputs();
         }
         
@@ -1637,6 +1655,7 @@
             document.getElementById('treatmentDate').value = '';
             document.getElementById('treatmentRedose').value = '';
             document.getElementById('treatmentNotes').value = '';
+            document.getElementById('animalModal').removeAttribute('data-edit-id');
             document.getElementById('pastureModalTitle').textContent = 'Add New Pasture';
             document.getElementById('deletePastureBtn').style.display = 'none';
         }
@@ -1916,6 +1935,90 @@
             document.getElementById('animalModal').style.display = 'block';
         }
         
+        function editAnimal(animalId) {
+            const animal = animals.find(a => a.id == animalId);
+            if (!animal) return;
+            
+            // Pre-populate basic fields
+            document.getElementById('animalName').value = animal.name;
+            document.getElementById('animalType').value = animal.type;
+            
+            // Update dynamic fields based on type
+            updateAnimalForm();
+            
+            // Pre-populate dynamic fields after they're created
+            setTimeout(() => {
+                if (document.getElementById('animalBreed')) {
+                    document.getElementById('animalBreed').value = animal.breed || '';
+                }
+                if (document.getElementById('animalWeight')) {
+                    document.getElementById('animalWeight').value = animal.weight || '';
+                }
+                if (document.getElementById('animalGender')) {
+                    document.getElementById('animalGender').value = animal.gender || '';
+                }
+                if (document.getElementById('animalColor')) {
+                    document.getElementById('animalColor').value = animal.color || '';
+                }
+                if (document.getElementById('animalCount')) {
+                    document.getElementById('animalCount').value = animal.count || '';
+                }
+                if (document.getElementById('animalPurpose')) {
+                    document.getElementById('animalPurpose').value = animal.purpose || '';
+                }
+            }, 50);
+            
+            // Store the animal ID for saving
+            document.getElementById('animalModal').setAttribute('data-edit-id', animalId);
+            document.getElementById('animalModal').style.display = 'block';
+        }
+        
+        function deleteAnimal(animalId) {
+            console.log('Delete function called with ID:', animalId);
+            
+            const animal = animals.find(a => a.id == animalId);
+            console.log('Found animal:', animal);
+            
+            if (!animal) {
+                alert('Animal not found');
+                return;
+            }
+            
+            // Check if animal has treatments
+            const animalTreatments = treatments.filter(t => t.animalId == animalId);
+            console.log('Found treatments:', animalTreatments.length);
+            
+            // Set up custom confirmation modal
+            let message = `Are you sure you want to delete "${animal.name}"?`;
+            if (animalTreatments.length > 0) {
+                message += `\n\nThis will also delete ${animalTreatments.length} treatment record(s).`;
+            }
+            
+            document.getElementById('deleteConfirmMessage').innerText = message;
+            
+            // Set up the confirm button to actually delete
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                console.log('User confirmed deletion, proceeding...');
+                
+                // Remove animal
+                animals = animals.filter(a => a.id != animalId);
+                localStorage.setItem('animals', JSON.stringify(animals));
+                
+                // Remove associated treatments
+                if (animalTreatments.length > 0) {
+                    treatments = treatments.filter(t => t.animalId != animalId);
+                    localStorage.setItem('treatments', JSON.stringify(treatments));
+                }
+                
+                displayAnimals();
+                closeModal();
+                alert('Animal deleted successfully!');
+            };
+            
+            // Show the confirmation modal
+            document.getElementById('deleteConfirmModal').style.display = 'block';
+        }
+        
         function updateAnimalForm() {
             const type = document.getElementById('animalType').value;
             const dynamicFields = document.getElementById('dynamicFields');
@@ -2015,6 +2118,7 @@
         function saveAnimal() {
             const name = document.getElementById('animalName').value.trim();
             const type = document.getElementById('animalType').value;
+            const editId = document.getElementById('animalModal').getAttribute('data-edit-id');
             
             if (!name) {
                 alert('Please enter an animal name');
@@ -2028,10 +2132,8 @@
             
             // Create base animal object
             const animalData = {
-                id: Date.now(),
                 name: name,
-                type: type,
-                created: new Date().toISOString()
+                type: type
             };
             
             // Add type-specific fields
@@ -2049,15 +2151,27 @@
             if (countEl) animalData.count = countEl.value;
             if (purposeEl) animalData.purpose = purposeEl.value;
             
-            // Add to animals array and save
-            animals.push(animalData);
-            localStorage.setItem('animals', JSON.stringify(animals));
+            if (editId) {
+                // Edit existing animal
+                const animalIndex = animals.findIndex(a => a.id == editId);
+                if (animalIndex !== -1) {
+                    animals[animalIndex] = {
+                        ...animals[animalIndex],
+                        ...animalData
+                    };
+                }
+                alert('Animal updated successfully!');
+            } else {
+                // Add new animal
+                animalData.id = Date.now();
+                animals.push(animalData);
+                alert('Animal added successfully!');
+            }
             
-            // Refresh display and close modal
+            // Save and refresh
+            localStorage.setItem('animals', JSON.stringify(animals));
             displayAnimals();
             closeModal();
-            
-            alert('Animal added successfully!');
         }
         
         function addTreatment() {
@@ -2151,6 +2265,39 @@
             alert('Treatment added successfully!');
         }
         
+        function deleteTreatment(treatmentId) {
+            console.log('Delete treatment called with ID:', treatmentId);
+            
+            const treatment = treatments.find(t => t.id == treatmentId);
+            const animal = animals.find(a => a.id == treatment.animalId);
+            
+            if (!treatment || !animal) {
+                alert('Treatment or animal not found');
+                return;
+            }
+            
+            // Set up custom confirmation modal
+            const message = `Are you sure you want to delete this treatment?\n\nAnimal: ${animal.name}\nTreatment: ${treatment.type}\nDate: ${new Date(treatment.dateAdministered).toLocaleDateString()}`;
+            
+            document.getElementById('deleteConfirmMessage').innerText = message;
+            
+            // Set up the confirm button to actually delete
+            document.getElementById('confirmDeleteBtn').onclick = function() {
+                console.log('User confirmed treatment deletion, proceeding...');
+                
+                // Remove treatment
+                treatments = treatments.filter(t => t.id != treatmentId);
+                localStorage.setItem('treatments', JSON.stringify(treatments));
+                
+                displayAnimals();
+                closeModal();
+                alert('Treatment deleted successfully!');
+            };
+            
+            // Show the confirmation modal
+            document.getElementById('deleteConfirmModal').style.display = 'block';
+        }
+        
         // Animal filter function
         function filterAnimals(type) {
             currentAnimalFilter = type;
@@ -2189,15 +2336,20 @@
                 
                 // Get next treatment due for this animal
                 const animalTreatments = treatments.filter(t => t.animalId == animal.id && t.nextDue);
+                const allTreatments = treatments.filter(t => t.animalId == animal.id);
                 let nextTreatmentDue = 'None scheduled';
+                let nextTreatmentType = 'None';
                 let dueSoon = false;
                 
                 if (animalTreatments.length > 0) {
                     // Find the earliest due date
                     const sortedTreatments = animalTreatments.sort((a, b) => new Date(a.nextDue) - new Date(b.nextDue));
-                    const nextDue = new Date(sortedTreatments[0].nextDue);
+                    const nextTreatment = sortedTreatments[0];
+                    const nextDue = new Date(nextTreatment.nextDue);
                     const today = new Date();
                     const daysUntilDue = Math.ceil((nextDue - today) / (1000 * 60 * 60 * 24));
+                    
+                    nextTreatmentType = nextTreatment.type;
                     
                     if (daysUntilDue < 0) {
                         nextTreatmentDue = `Overdue ${Math.abs(daysUntilDue)} days`;
@@ -2230,14 +2382,40 @@
                                 <div class="animal-type">${animal.type}</div>
                                 ${details ? `<div style="font-size: 0.8rem; color: #888; margin-top: 0.25rem;">${details}</div>` : ''}
                             </div>
+                            <div class="pasture-actions">
+                                <button class="btn-small btn-edit" onclick="editAnimal(${animal.id})">Edit</button>
+                                <button class="btn-small btn-delete" onclick="deleteAnimal(${animal.id})">Delete</button>
+                            </div>
                         </div>
                         
                         <div class="pasture-info">
-                            <div class="info-item" style="grid-column: 1 / -1;">
-                                <div class="info-label">Next Treatment Due</div>
+                            <div class="info-item">
+                                <div class="info-label">Next Treatment</div>
+                                <div class="info-value" style="font-size: 0.9rem;">${nextTreatmentType}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Due Date</div>
                                 <div class="info-value" style="font-size: 0.9rem; color: ${dueSoon ? '#dc3545' : '#333'}; font-weight: ${dueSoon ? 'bold' : 'normal'};">${nextTreatmentDue}</div>
                             </div>
                         </div>
+                        
+                        ${allTreatments.length > 0 ? `
+                            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                                <h4 style="font-size: 0.9rem; color: #666; margin-bottom: 0.5rem;">Recent Treatments:</h4>
+                                <div style="font-size: 0.8rem; color: #888;">
+                                    ${allTreatments.slice(0, 3).map(t => `
+                                        <div style="margin-bottom: 0.25rem; display: flex; justify-content: space-between; align-items: flex-start;">
+                                            <div style="flex: 1;">
+                                                <strong>${t.type}</strong> - ${new Date(t.dateAdministered).toLocaleDateString()}
+                                                ${t.notes ? `<br><em>${t.notes}</em>` : ''}
+                                            </div>
+                                            <button onclick="deleteTreatment(${t.id})" style="background: #dc3545; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; cursor: pointer; margin-left: 0.5rem; flex-shrink: 0;" title="Delete treatment">×</button>
+                                        </div>
+                                    `).join('')}
+                                    ${allTreatments.length > 3 ? `<div style="color: #666; font-style: italic;">... and ${allTreatments.length - 3} more</div>` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             });
@@ -2438,6 +2616,52 @@
             }
         }
         
+        function checkTreatmentNotifications() {
+            if (Notification.permission !== 'granted') return;
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Check all treatments with due dates
+            const dueTreatments = treatments.filter(t => t.nextDue);
+            
+            dueTreatments.forEach(treatment => {
+                const dueDate = new Date(treatment.nextDue);
+                dueDate.setHours(0, 0, 0, 0);
+                
+                const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+                const animal = animals.find(a => a.id == treatment.animalId);
+                
+                if (!animal) return;
+                
+                const animalIcon = getAnimalIcon(animal.type);
+                let notificationTitle = '';
+                let notificationBody = '';
+                
+                if (daysUntilDue < 0) {
+                    // Overdue
+                    notificationTitle = `${animalIcon} Treatment Overdue!`;
+                    notificationBody = `${animal.name} - ${treatment.type} was due ${Math.abs(daysUntilDue)} days ago`;
+                } else if (daysUntilDue === 0) {
+                    // Due today
+                    notificationTitle = `${animalIcon} Treatment Due Today!`;
+                    notificationBody = `${animal.name} - ${treatment.type} is due today`;
+                } else if (daysUntilDue <= 3) {
+                    // Due soon (within 3 days)
+                    notificationTitle = `${animalIcon} Treatment Due Soon`;
+                    notificationBody = `${animal.name} - ${treatment.type} due in ${daysUntilDue} days`;
+                }
+                
+                // Send notification if we have a message
+                if (notificationTitle) {
+                    new Notification(notificationTitle, {
+                        body: notificationBody,
+                        icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="#ff6b35" width="100" height="100"/><text y="70" font-size="60" text-anchor="middle" x="50" fill="white">💉</text></svg>'
+                    });
+                }
+            });
+        }
+        
         function scheduleNotifications() {
             const now = new Date();
             const tomorrow7AM = new Date(now);
@@ -2448,7 +2672,11 @@
             
             setTimeout(() => {
                 checkSheddingConditions();
-                setInterval(checkSheddingConditions, 24 * 60 * 60 * 1000);
+                checkTreatmentNotifications();
+                setInterval(() => {
+                    checkSheddingConditions();
+                    checkTreatmentNotifications();
+                }, 24 * 60 * 60 * 1000);
             }, msUntil7AM);
         }
         
@@ -2474,11 +2702,13 @@
             const assignModal = document.getElementById('assignModal');
             const animalModal = document.getElementById('animalModal');
             const treatmentModal = document.getElementById('treatmentModal');
+            const deleteConfirmModal = document.getElementById('deleteConfirmModal');
             const photoViewModal = document.getElementById('photoViewModal');
             
             if (event.target === photoModal || event.target === noteModal || 
                 event.target === pastureModal || event.target === assignModal ||
-                event.target === animalModal || event.target === treatmentModal) {
+                event.target === animalModal || event.target === treatmentModal ||
+                event.target === deleteConfirmModal) {
                 closeModal();
             } else if (event.target === photoViewModal) {
                 closePhotoView();
