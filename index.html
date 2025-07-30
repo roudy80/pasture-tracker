@@ -647,6 +647,76 @@
             margin-top: 1rem;
         }
         
+        .empty-animals {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+        
+        .animal-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #ff6b35;
+        }
+        
+        .animal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 0.5rem;
+        }
+        
+        .animal-name {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ff6b35;
+            margin: 0;
+        }
+        
+        .animal-type {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: capitalize;
+        }
+        
+        .animal-filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid #ff6b35;
+            background: white;
+            color: #ff6b35;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background: #ff6b35;
+            color: white;
+        }
+        
+        .filter-btn:hover {
+            background: #ff6b35;
+            color: white;
+        }
+        
         .assign-photo-btn {
             position: absolute;
             bottom: 5px;
@@ -744,6 +814,7 @@
         <div class="tab-navigation">
             <button class="tab-button active" onclick="switchTab('weather')">🌤️ Weather</button>
             <button class="tab-button" onclick="switchTab('pasture')">🌾 Pasture</button>
+            <button class="tab-button" onclick="switchTab('animals')">🐄 Animals</button>
         </div>
         
         <!-- Weather Tab -->
@@ -814,6 +885,26 @@
                 <div id="unassignedGrid" class="photo-grid">
                     <!-- Unassigned photos will be added here -->
                 </div>
+            </div>
+        </div>
+        
+        <!-- Animals Tab -->
+        <div id="animalsTab" class="tab-content">
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="addAnimal()">🐄 Add Animal</button>
+                <button class="btn btn-secondary" onclick="addTreatment()">💉 Add Treatment</button>
+                <button class="btn btn-secondary" onclick="testNotification()">🔔 Test Alert</button>
+            </div>
+            
+            <div class="animal-filters">
+                <button class="filter-btn active" onclick="filterAnimals('all')">🐾 All</button>
+                <button class="filter-btn" onclick="filterAnimals('cattle')">🐄 Cattle</button>
+                <button class="filter-btn" onclick="filterAnimals('horses')">🐴 Horses</button>
+                <button class="filter-btn" onclick="filterAnimals('chickens')">🐓 Chickens</button>
+                <button class="filter-btn" onclick="filterAnimals('dogs')">🐕 Dogs</button>
+            </div>
+            <div id="animalsList" class="pastures-container">
+                <!-- Animals will be displayed here -->
             </div>
         </div>
     </div>
@@ -904,6 +995,71 @@
         </div>
     </div>
 
+    <!-- Animal Modal -->
+    <div id="animalModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3>Add New Animal</h3>
+            <div class="form-group">
+                <label for="animalName">Animal Name:</label>
+                <input type="text" id="animalName" placeholder="e.g., Bessie, Thunder, Henrietta">
+            </div>
+            <div class="form-group">
+                <label for="animalType">Animal Type:</label>
+                <select id="animalType" onchange="updateAnimalForm()">
+                    <option value="">Select type...</option>
+                    <option value="cattle">🐄 Cattle</option>
+                    <option value="horses">🐴 Horses</option>
+                    <option value="chickens">🐓 Chickens</option>
+                    <option value="dogs">🐕 Dogs</option>
+                </select>
+            </div>
+            
+            <!-- Dynamic fields that appear based on animal type -->
+            <div id="dynamicFields"></div>
+            
+            <button class="btn btn-primary" onclick="saveAnimal()">Save Animal</button>
+        </div>
+    </div>
+
+    <!-- Treatment Modal -->
+    <div id="treatmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3>Add Treatment</h3>
+            <div class="form-group">
+                <label for="treatmentAnimal">Animal:</label>
+                <select id="treatmentAnimal">
+                    <option value="">Select animal...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="treatmentType">Treatment Type:</label>
+                <input type="text" id="treatmentType" placeholder="e.g., Vaccination, Deworming, Antibiotic">
+            </div>
+            <div class="form-group">
+                <label for="treatmentDate">Date Administered:</label>
+                <input type="date" id="treatmentDate">
+            </div>
+            <div class="form-group">
+                <label for="treatmentRedose">Redose Interval:</label>
+                <select id="treatmentRedose">
+                    <option value="">No redose needed</option>
+                    <option value="1week">1 Week</option>
+                    <option value="1month">1 Month</option>
+                    <option value="1quarter">3 Months (Quarter)</option>
+                    <option value="6months">6 Months</option>
+                    <option value="1year">1 Year (Annual)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="treatmentNotes">Notes:</label>
+                <textarea id="treatmentNotes" rows="3" placeholder="e.g., 10cc injection, left side"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveTreatment()">Save Treatment</button>
+        </div>
+    </div>
+
     <!-- Full Screen Photo Modal -->
     <div id="photoViewModal" class="photo-modal">
         <span class="photo-modal-close" onclick="closePhotoView()">&times;</span>
@@ -922,12 +1078,16 @@
         let photos = JSON.parse(localStorage.getItem('pasturePhotos') || '[]');
         let notes = JSON.parse(localStorage.getItem('pastureNotes') || '[]');
         let pastures = JSON.parse(localStorage.getItem('pastures') || '[]');
+        let animals = JSON.parse(localStorage.getItem('animals') || '[]');
         let burnBanStatus = JSON.parse(localStorage.getItem('burnBanStatus') || '{"fayette": {"active": false, "expires": ""}}');
+        let treatments = JSON.parse(localStorage.getItem('treatments') || '[]');
+        let currentAnimalFilter = 'all';
         
         // Initialize app when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initializeBurnBanControls();
             displayPastures();
+            displayAnimals();
             requestNotificationPermission();
             loadWeather();
             
@@ -1450,6 +1610,8 @@
             document.getElementById('noteModal').style.display = 'none';
             document.getElementById('pastureModal').style.display = 'none';
             document.getElementById('assignModal').style.display = 'none';
+            document.getElementById('animalModal').style.display = 'none';
+            document.getElementById('treatmentModal').style.display = 'none';
             clearModalInputs();
         }
         
@@ -1467,6 +1629,14 @@
             document.getElementById('pastureEditId').value = '';
             document.getElementById('assignPasture').value = '';
             document.getElementById('assignPhotoId').value = '';
+            document.getElementById('animalName').value = '';
+            document.getElementById('animalType').value = '';
+            document.getElementById('dynamicFields').innerHTML = '';
+            document.getElementById('treatmentAnimal').value = '';
+            document.getElementById('treatmentType').value = '';
+            document.getElementById('treatmentDate').value = '';
+            document.getElementById('treatmentRedose').value = '';
+            document.getElementById('treatmentNotes').value = '';
             document.getElementById('pastureModalTitle').textContent = 'Add New Pasture';
             document.getElementById('deletePastureBtn').style.display = 'none';
         }
@@ -1730,6 +1900,350 @@
             document.body.style.overflow = 'auto';
         }
         
+        // Animal helper functions
+        function getAnimalIcon(type) {
+            switch (type) {
+                case 'cattle': return '🐄';
+                case 'horses': return '🐴';
+                case 'chickens': return '🐓';
+                case 'dogs': return '🐕';
+                default: return '🐾';
+            }
+        }
+        
+        // Animal functions
+        function addAnimal() {
+            document.getElementById('animalModal').style.display = 'block';
+        }
+        
+        function updateAnimalForm() {
+            const type = document.getElementById('animalType').value;
+            const dynamicFields = document.getElementById('dynamicFields');
+            
+            if (!type) {
+                dynamicFields.innerHTML = '';
+                return;
+            }
+            
+            let fieldsHtml = '';
+            
+            if (type === 'cattle') {
+                fieldsHtml = `
+                    <div class="form-group">
+                        <label for="animalBreed">Breed:</label>
+                        <input type="text" id="animalBreed" placeholder="e.g., Angus, Holstein">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalWeight">Weight (lbs):</label>
+                        <input type="number" id="animalWeight" placeholder="e.g., 1200">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalGender">Gender:</label>
+                        <select id="animalGender">
+                            <option value="">Select...</option>
+                            <option value="bull">Bull</option>
+                            <option value="cow">Cow</option>
+                            <option value="steer">Steer</option>
+                            <option value="heifer">Heifer</option>
+                        </select>
+                    </div>
+                `;
+            } else if (type === 'horses') {
+                fieldsHtml = `
+                    <div class="form-group">
+                        <label for="animalBreed">Breed:</label>
+                        <input type="text" id="animalBreed" placeholder="e.g., Quarter Horse, Arabian">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalColor">Color:</label>
+                        <input type="text" id="animalColor" placeholder="e.g., Bay, Chestnut">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalGender">Gender:</label>
+                        <select id="animalGender">
+                            <option value="">Select...</option>
+                            <option value="stallion">Stallion</option>
+                            <option value="mare">Mare</option>
+                            <option value="gelding">Gelding</option>
+                        </select>
+                    </div>
+                `;
+            } else if (type === 'chickens') {
+                fieldsHtml = `
+                    <div class="form-group">
+                        <label for="animalCount">Flock Count:</label>
+                        <input type="number" id="animalCount" placeholder="e.g., 25">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalBreed">Breed:</label>
+                        <input type="text" id="animalBreed" placeholder="e.g., Rhode Island Red">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalPurpose">Purpose:</label>
+                        <select id="animalPurpose">
+                            <option value="">Select...</option>
+                            <option value="layers">Egg Layers</option>
+                            <option value="meat">Meat Birds</option>
+                            <option value="both">Both</option>
+                        </select>
+                    </div>
+                `;
+            } else if (type === 'dogs') {
+                fieldsHtml = `
+                    <div class="form-group">
+                        <label for="animalBreed">Breed:</label>
+                        <input type="text" id="animalBreed" placeholder="e.g., Border Collie, Blue Heeler">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalWeight">Weight (lbs):</label>
+                        <input type="number" id="animalWeight" placeholder="e.g., 45">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalGender">Gender:</label>
+                        <select id="animalGender">
+                            <option value="">Select...</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                `;
+            }
+            
+            dynamicFields.innerHTML = fieldsHtml;
+        }
+        
+        function saveAnimal() {
+            const name = document.getElementById('animalName').value.trim();
+            const type = document.getElementById('animalType').value;
+            
+            if (!name) {
+                alert('Please enter an animal name');
+                return;
+            }
+            
+            if (!type) {
+                alert('Please select an animal type');
+                return;
+            }
+            
+            // Create base animal object
+            const animalData = {
+                id: Date.now(),
+                name: name,
+                type: type,
+                created: new Date().toISOString()
+            };
+            
+            // Add type-specific fields
+            const breedEl = document.getElementById('animalBreed');
+            const weightEl = document.getElementById('animalWeight');
+            const genderEl = document.getElementById('animalGender');
+            const colorEl = document.getElementById('animalColor');
+            const countEl = document.getElementById('animalCount');
+            const purposeEl = document.getElementById('animalPurpose');
+            
+            if (breedEl) animalData.breed = breedEl.value.trim();
+            if (weightEl) animalData.weight = weightEl.value;
+            if (genderEl) animalData.gender = genderEl.value;
+            if (colorEl) animalData.color = colorEl.value.trim();
+            if (countEl) animalData.count = countEl.value;
+            if (purposeEl) animalData.purpose = purposeEl.value;
+            
+            // Add to animals array and save
+            animals.push(animalData);
+            localStorage.setItem('animals', JSON.stringify(animals));
+            
+            // Refresh display and close modal
+            displayAnimals();
+            closeModal();
+            
+            alert('Animal added successfully!');
+        }
+        
+        function addTreatment() {
+            // Update animal dropdown with current animals
+            const animalSelect = document.getElementById('treatmentAnimal');
+            animalSelect.innerHTML = '<option value="">Select animal...</option>';
+            
+            animals.forEach(animal => {
+                const icon = getAnimalIcon(animal.type);
+                const option = document.createElement('option');
+                option.value = animal.id;
+                option.textContent = `${icon} ${animal.name}`;
+                animalSelect.appendChild(option);
+            });
+            
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('treatmentDate').value = today;
+            
+            document.getElementById('treatmentModal').style.display = 'block';
+        }
+        
+        function saveTreatment() {
+            const animalId = document.getElementById('treatmentAnimal').value;
+            const treatmentType = document.getElementById('treatmentType').value.trim();
+            const treatmentDate = document.getElementById('treatmentDate').value;
+            const redoseInterval = document.getElementById('treatmentRedose').value;
+            const notes = document.getElementById('treatmentNotes').value.trim();
+            
+            if (!animalId) {
+                alert('Please select an animal');
+                return;
+            }
+            
+            if (!treatmentType) {
+                alert('Please enter a treatment type');
+                return;
+            }
+            
+            if (!treatmentDate) {
+                alert('Please enter the date administered');
+                return;
+            }
+            
+            // Calculate next due date if redose interval is selected
+            let nextDue = null;
+            if (redoseInterval) {
+                const adminDate = new Date(treatmentDate);
+                const nextDueDate = new Date(adminDate);
+                
+                switch (redoseInterval) {
+                    case '1week':
+                        nextDueDate.setDate(adminDate.getDate() + 7);
+                        break;
+                    case '1month':
+                        nextDueDate.setMonth(adminDate.getMonth() + 1);
+                        break;
+                    case '1quarter':
+                        nextDueDate.setMonth(adminDate.getMonth() + 3);
+                        break;
+                    case '6months':
+                        nextDueDate.setMonth(adminDate.getMonth() + 6);
+                        break;
+                    case '1year':
+                        nextDueDate.setFullYear(adminDate.getFullYear() + 1);
+                        break;
+                }
+                nextDue = nextDueDate.toISOString();
+            }
+            
+            // Create treatment object
+            const treatmentData = {
+                id: Date.now(),
+                animalId: animalId,
+                type: treatmentType,
+                dateAdministered: treatmentDate,
+                redoseInterval: redoseInterval || null,
+                nextDue: nextDue,
+                notes: notes || '',
+                dateCreated: new Date().toISOString()
+            };
+            
+            // Add to treatments array and save
+            treatments.push(treatmentData);
+            localStorage.setItem('treatments', JSON.stringify(treatments));
+            
+            // Refresh display and close modal
+            displayAnimals();
+            closeModal();
+            
+            alert('Treatment added successfully!');
+        }
+        
+        // Animal filter function
+        function filterAnimals(type) {
+            currentAnimalFilter = type;
+            
+            // Update filter button active state
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            displayAnimals();
+        }
+        
+        // Animals display function
+        function displayAnimals() {
+            const container = document.getElementById('animalsList');
+            
+            // Filter animals based on current filter
+            let filteredAnimals = animals;
+            if (currentAnimalFilter !== 'all') {
+                filteredAnimals = animals.filter(animal => animal.type === currentAnimalFilter);
+            }
+            
+            if (filteredAnimals.length === 0) {
+                const message = currentAnimalFilter === 'all' ? 
+                    '<h3>🐾 No animals yet!</h3>' : 
+                    `<h3>🐾 No ${currentAnimalFilter} yet!</h3>`;
+                container.innerHTML = `<div class="empty-animals">${message}</div>`;
+                return;
+            }
+            
+            // Display filtered animal list
+            let html = '';
+            filteredAnimals.forEach(animal => {
+                const icon = getAnimalIcon(animal.type);
+                
+                // Get next treatment due for this animal
+                const animalTreatments = treatments.filter(t => t.animalId == animal.id && t.nextDue);
+                let nextTreatmentDue = 'None scheduled';
+                let dueSoon = false;
+                
+                if (animalTreatments.length > 0) {
+                    // Find the earliest due date
+                    const sortedTreatments = animalTreatments.sort((a, b) => new Date(a.nextDue) - new Date(b.nextDue));
+                    const nextDue = new Date(sortedTreatments[0].nextDue);
+                    const today = new Date();
+                    const daysUntilDue = Math.ceil((nextDue - today) / (1000 * 60 * 60 * 24));
+                    
+                    if (daysUntilDue < 0) {
+                        nextTreatmentDue = `Overdue ${Math.abs(daysUntilDue)} days`;
+                        dueSoon = true;
+                    } else if (daysUntilDue <= 7) {
+                        nextTreatmentDue = daysUntilDue === 0 ? 'Due today!' : `Due in ${daysUntilDue} days`;
+                        dueSoon = true;
+                    } else {
+                        nextTreatmentDue = nextDue.toLocaleDateString();
+                    }
+                }
+                
+                // Build details string based on animal type
+                let details = '';
+                if (animal.type === 'cattle') {
+                    details = [animal.breed, animal.gender, animal.weight ? `${animal.weight} lbs` : ''].filter(Boolean).join(' • ');
+                } else if (animal.type === 'horses') {
+                    details = [animal.breed, animal.color, animal.gender].filter(Boolean).join(' • ');
+                } else if (animal.type === 'chickens') {
+                    details = [animal.count ? `${animal.count} birds` : '', animal.breed, animal.purpose].filter(Boolean).join(' • ');
+                } else if (animal.type === 'dogs') {
+                    details = [animal.breed, animal.gender, animal.weight ? `${animal.weight} lbs` : ''].filter(Boolean).join(' • ');
+                }
+                
+                html += `
+                    <div class="animal-card">
+                        <div class="animal-header">
+                            <div>
+                                <h3 class="animal-name">${icon} ${animal.name}</h3>
+                                <div class="animal-type">${animal.type}</div>
+                                ${details ? `<div style="font-size: 0.8rem; color: #888; margin-top: 0.25rem;">${details}</div>` : ''}
+                            </div>
+                        </div>
+                        
+                        <div class="pasture-info">
+                            <div class="info-item" style="grid-column: 1 / -1;">
+                                <div class="info-label">Next Treatment Due</div>
+                                <div class="info-value" style="font-size: 0.9rem; color: ${dueSoon ? '#dc3545' : '#333'}; font-weight: ${dueSoon ? 'bold' : 'normal'};">${nextTreatmentDue}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+        
         function displayPastures() {
             const container = document.getElementById('pasturesList');
             const unassignedSection = document.getElementById('unassignedPhotos');
@@ -1900,6 +2414,30 @@
             }
         }
         
+        function testNotification() {
+            if (!('Notification' in window)) {
+                alert('This browser does not support notifications');
+                return;
+            }
+            
+            if (Notification.permission === 'granted') {
+                new Notification('🔔 Test Notification', {
+                    body: 'Notifications are working on your device!',
+                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="#228B22" width="100" height="100"/><text y="70" font-size="60" text-anchor="middle" x="50" fill="white">🐄</text></svg>'
+                });
+            } else if (Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        alert('Permission granted! Try the test button again.');
+                    } else {
+                        alert('Notification permission denied. Enable in browser settings.');
+                    }
+                });
+            } else {
+                alert('Notifications blocked. Enable in browser/device settings.');
+            }
+        }
+        
         function scheduleNotifications() {
             const now = new Date();
             const tomorrow7AM = new Date(now);
@@ -1934,10 +2472,13 @@
             const noteModal = document.getElementById('noteModal');
             const pastureModal = document.getElementById('pastureModal');
             const assignModal = document.getElementById('assignModal');
+            const animalModal = document.getElementById('animalModal');
+            const treatmentModal = document.getElementById('treatmentModal');
             const photoViewModal = document.getElementById('photoViewModal');
             
             if (event.target === photoModal || event.target === noteModal || 
-                event.target === pastureModal || event.target === assignModal) {
+                event.target === pastureModal || event.target === assignModal ||
+                event.target === animalModal || event.target === treatmentModal) {
                 closeModal();
             } else if (event.target === photoViewModal) {
                 closePhotoView();
