@@ -42,6 +42,63 @@
             margin: 0 auto;
         }
         
+        .tab-navigation {
+            display: flex;
+            background: white;
+            border-radius: 15px 15px 0 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 0;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.3s;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .tab-button.active {
+            background: #228B22;
+            color: white;
+        }
+        
+        .tab-button:hover:not(.active) {
+            background: #f8f9fa;
+        }
+        
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 0 0 15px 15px;
+            min-height: 200px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 1rem;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .weather-card {
+            background: transparent;
+            border-radius: 15px;
+            padding: 0;
+            margin-bottom: 1rem;
+            box-shadow: none;
+        }
+        
+        .weather-card .current-weather {
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+        }
+        
         .weather-card {
             background: white;
             border-radius: 15px;
@@ -225,7 +282,7 @@
         .alerts {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
-            border-radius: 10px;
+            border-radius: 15px;
             padding: 1rem;
             margin-bottom: 1rem;
         }
@@ -233,7 +290,7 @@
         .fire-alert {
             background: #fff3cd;
             border: 1px solid #ffeaa7;
-            border-radius: 10px;
+            border-radius: 15px;
             padding: 1rem;
             margin-bottom: 1rem;
         }
@@ -567,60 +624,71 @@
     </div>
     
     <div class="container">
-        <div class="weather-card">
-            <div id="weatherContent" class="loading">
-                Loading weather data...
-            </div>
+        <div class="tab-navigation">
+            <button class="tab-button active" onclick="switchTab('weather')">🌤️ Weather</button>
+            <button class="tab-button" onclick="switchTab('pasture')">🌾 Pasture</button>
         </div>
         
-        <div class="burn-ban-controls">
-            <h3>🔥 Burn Ban Status</h3>
-            
-            <div class="county-links">
-                <a href="https://www.co.fayette.tx.us/" target="_blank" class="county-link">
-                    Check Fayette County Status
-                </a>
-            </div>
-            
-            <div class="burn-ban-toggle">
-                <span><strong>Fayette County Burn Ban:</strong></span>
-                <div>
-                    <span id="fayetteStatus">OFF</span>
-                    <div class="toggle-switch" id="fayetteToggle" onclick="toggleBurnBan('fayette')">
-                        <div class="toggle-slider"></div>
-                    </div>
+        <!-- Weather Tab -->
+        <div id="weatherTab" class="tab-content active">
+            <div class="weather-card">
+                <div id="weatherContent" class="loading">
+                    Loading weather data...
                 </div>
             </div>
             
-            <div id="fayetteExpiry" class="hidden">
-                <label>Expires: <input type="date" id="fayetteDate" class="date-input" onchange="updateBurnBanDate('fayette')"></label>
+            <div class="burn-ban-controls">
+                <h3>🔥 Burn Ban Status</h3>
+                
+                <div class="county-links">
+                    <a href="https://www.co.fayette.tx.us/" target="_blank" class="county-link">
+                        Check Fayette County Status
+                    </a>
+                </div>
+                
+                <div class="burn-ban-toggle">
+                    <span><strong>Fayette County Burn Ban:</strong></span>
+                    <div>
+                        <span id="fayetteStatus">OFF</span>
+                        <div class="toggle-switch" id="fayetteToggle" onclick="toggleBurnBan('fayette')">
+                            <div class="toggle-slider"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="fayetteExpiry" class="hidden">
+                    <label>Expires: <input type="date" id="fayetteDate" class="date-input" onchange="updateBurnBanDate('fayette')"></label>
+                </div>
+            </div>
+            
+            <div id="fireAlertsSection" class="hidden">
+                <div class="fire-alert" id="fireAlertContainer">
+                    <h3>🔥 Fire Weather Assessment</h3>
+                    <div id="fireRiskLevel" class="risk-level risk-low">FIRE RISK: LOW</div>
+                    <div id="fireAlertContent" class="alert-content"></div>
+                </div>
+            </div>
+            
+            <div id="alertsSection" class="hidden">
+                <div class="alerts">
+                    <div class="alert-title">🌱 Pasture Alert</div>
+                    <div id="alertContent" class="alert-content"></div>
+                </div>
             </div>
         </div>
         
-        <div id="fireAlertsSection" class="hidden">
-            <div class="fire-alert" id="fireAlertContainer">
-                <h3>🔥 Fire Weather Assessment</h3>
-                <div id="fireRiskLevel" class="risk-level risk-low">FIRE RISK: LOW</div>
-                <div id="fireAlertContent" class="alert-content"></div>
+        <!-- Pasture Tab -->
+        <div id="pastureTab" class="tab-content">
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="takePhoto()">📸 Log Photo</button>
+                <button class="btn btn-secondary" onclick="addNote()">📝 Add Note</button>
             </div>
-        </div>
-        
-        <div id="alertsSection" class="hidden">
-            <div class="alerts">
-                <div class="alert-title">🌱 Pasture Alert</div>
-                <div id="alertContent" class="alert-content"></div>
-            </div>
-        </div>
-        
-        <div class="action-buttons">
-            <button class="btn btn-primary" onclick="takePhoto()">📸 Log Photo</button>
-            <button class="btn btn-secondary" onclick="addNote()">📝 Add Note</button>
-        </div>
-        
-        <div class="photo-section">
-            <h3>📷 Recent Logs</h3>
-            <div id="photoGrid" class="photo-grid">
-                <!-- Photos will be added here -->
+            
+            <div class="photo-section">
+                <h3>📷 Recent Logs</h3>
+                <div id="photoGrid" class="photo-grid">
+                    <!-- Photos will be added here -->
+                </div>
             </div>
         </div>
     </div>
@@ -1168,8 +1236,29 @@
             }
         }
         
+        // Tab functions
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // Activate selected tab button
+            event.target.classList.add('active');
+        }
+        
         // Photo functions
         function takePhoto() {
+            // Clear any previous file selection
+            document.getElementById('cameraInput').value = '';
             document.getElementById('photoModal').style.display = 'block';
         }
         
@@ -1218,6 +1307,16 @@
                 localStorage.setItem('pasturePhotos', JSON.stringify(photos));
                 displayPhotos();
                 closeModal();
+                
+                // Clear the file input completely
+                const newInput = document.createElement('input');
+                newInput.type = 'file';
+                newInput.id = 'cameraInput';
+                newInput.accept = 'image/jpeg,image/png';
+                newInput.setAttribute('capture', 'environment');
+                
+                const oldInput = document.getElementById('cameraInput');
+                oldInput.parentNode.replaceChild(newInput, oldInput);
                 
                 alert('Photo saved successfully!');
             };
