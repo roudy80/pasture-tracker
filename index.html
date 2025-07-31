@@ -2688,13 +2688,9 @@ ${breedingInfo ? `<div style="font-size: 0.8rem; color: #228B22; margin-top: 0.2
                         </div>
                         
                         <div class="pasture-info">
-                            <div class="info-item">
-                                <div class="info-label">Next Treatment</div>
-                                <div class="info-value" style="font-size: 0.9rem;">${nextTreatmentType}</div>
-                            </div>
-                            <div class="info-item">
-                                <div class="info-label">Due Date</div>
-                                <div class="info-value" style="font-size: 0.9rem; color: ${dueSoon ? '#dc3545' : '#333'}; font-weight: ${dueSoon ? 'bold' : 'normal'};">${nextTreatmentDue}</div>
+                            <div class="info-item" style="grid-column: 1 / -1;">
+                                <div class="info-label">Upcoming Treatments</div>
+                                <div class="info-value" style="font-size: 0.8rem; color: ${dueSoon ? '#dc3545' : '#333'}; font-weight: ${dueSoon ? 'bold' : 'normal'}; line-height: 1.3;">${nextTreatmentType}</div>
                             </div>
                         </div>
                         
@@ -2705,9 +2701,10 @@ ${breedingInfo ? `<div style="font-size: 0.8rem; color: #228B22; margin-top: 0.2
                                     ${allTreatments.slice(0, 3).map(t => `
                                         <div style="margin-bottom: 0.25rem; display: flex; justify-content: space-between; align-items: flex-start;">
                                             <div style="flex: 1;">
-                                                <strong>${t.type}</strong> - ${new Date(t.dateAdministered).toLocaleDateString()}
+                                                <strong>${t.type}</strong> - ${t.lastCompleted ? `Last given: ${new Date(t.lastCompleted).toLocaleDateString()}` : `Scheduled: ${new Date(t.dateAdministered).toLocaleDateString()}`}
                                                 ${t.notes ? `<br><em>${t.notes}</em>` : ''}
                                             </div>
+                                            <button onclick="markTreatmentComplete(${t.id})" style="background: #28a745; color: white; border: none; border-radius: 3px; padding: 2px 4px; font-size: 10px; cursor: pointer; margin-left: 0.5rem;" title="Mark as completed today">✓</button>     
                                             <button onclick="deleteTreatment(${t.id})" style="background: #dc3545; color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; cursor: pointer; margin-left: 0.5rem; flex-shrink: 0;" title="Delete treatment">×</button>
                                         </div>
                                     `).join('')}
@@ -3159,6 +3156,48 @@ function restoreData() {
     reader.readAsText(file);
     fileInput.value = ''; // Clear the input
 }
+
+function markTreatmentComplete(treatmentId) {
+    const treatment = treatments.find(t => t.id == treatmentId);
+    if (!treatment) return;
+    
+    const today = new Date();
+const localDate = new Date(today.getTime() - (today.getTimezoneOffset() * 60000));
+const todayString = localDate.toISOString().split('T')[0];
+    
+    // Record completion
+    treatment.lastCompleted = today;
+    
+    // Calculate next due date from today
+    if (treatment.redoseInterval) {
+       const nextDueDate = new Date(today);
+        switch (treatment.redoseInterval) {
+            case '1week':
+                nextDueDate.setDate(nextDueDate.getDate() + 7);
+                break;
+            case '1month':
+                nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+                break;
+            case '1quarter':
+                nextDueDate.setMonth(nextDueDate.getMonth() + 3);
+                break;
+            case '6months':
+                nextDueDate.setMonth(nextDueDate.getMonth() + 6);
+                break;
+            case '1year':
+                nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
+                break;
+        }
+        treatment.nextDue = nextDueDate.toISOString();
+    } else {
+        treatment.nextDue = null;
+    }
+    
+    localStorage.setItem('treatments', JSON.stringify(treatments));
+    displayAnimals();
+    alert(`Treatment completed! Next due: ${treatment.nextDue ? new Date(treatment.nextDue).toLocaleDateString() : 'None scheduled'}`);
+    
+}        
         
         // Close modal on outside click
         window.onclick = function(event) {
