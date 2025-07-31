@@ -1923,8 +1923,14 @@ document.getElementById('projectModal').removeAttribute('data-edit-id');
                 closeModal();
                 
                 // Clear the file input completely
-             document.getElementById('cameraInput').value = ''
-                oldInput.parentNode.replaceChild(newInput, oldInput);
+try {
+    const oldInput = document.getElementById('cameraInput');
+    const newInput = oldInput.cloneNode(true);
+    oldInput.parentNode.replaceChild(newInput, oldInput);
+} catch (error) {
+    console.log('Input replacement failed, trying standard clear:', error);
+    document.getElementById('cameraInput').value = '';
+}
                 
                 alert('Photo saved successfully!');
             };
