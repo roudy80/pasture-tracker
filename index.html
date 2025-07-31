@@ -1933,27 +1933,22 @@ try {
 }
                 
                 alert('Photo saved successfully!');
-            };
 
-                reader.onerror = function(error) {
-                console.error('Error reading file:', error);
-                alert('Error saving photo. Please try                           again.');
-      
+// Clear file input after successful save
+setTimeout(() => {
+    const fileInput = document.getElementById('cameraInput');
+    fileInput.value = '';
+    // Force the form to reset
+    const form = fileInput.closest('form') || fileInput.parentElement;
+    if (form && form.reset) form.reset();
+}, 500);
+
+};
+reader.onerror = function(error) {
+    console.error('Error reading file:', error);
+    alert('Error saving photo. Please try again.');
 };
 
-// Better mobile file input clearing
-reader.onloadend = function() {
-    setTimeout(() => {
-        try {
-            const oldInput = document.getElementById('cameraInput');
-            const newInput = oldInput.cloneNode(true);
-            newInput.value = '';
-            oldInput.parentNode.replaceChild(newInput, oldInput);
-        } catch (error) {
-            console.log('Input replacement failed:', error);
-        }
-    }, 100);
-};
 
 reader.readAsDataURL(file);
             
@@ -3023,16 +3018,16 @@ ${breedingInfo ? `<div style="font-size: 0.8rem; color: #228B22; margin-top: 0.2
             const msUntil7AM = tomorrow7AM.getTime() - now.getTime();
             
             setTimeout(() => {
-                checkSheddingConditions();
+                checkShreddingConditions();
                 checkTreatmentNotifications();
                 checkBreedingNotifications();                        setInterval(() => {
-                    checkSheddingConditions();
+                    checkShreddingConditions();
                     checkTreatmentNotifications();
                     checkBreedingNotifications();                    }, 24 * 60 * 60 * 1000);
             }, msUntil7AM);
         }
         
-        function checkSheddingConditions() {
+        function checkShreddingConditions() {
             if (currentWeather && currentWeather.windSpeed < 10 && currentWeather.temp < 95) {
                 if (Notification.permission === 'granted') {
                     new Notification('🌾 Perfect Shredding Weather!', {
