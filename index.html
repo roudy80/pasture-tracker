@@ -508,7 +508,7 @@
             z-index: 1000;
         }
         
-        .modal-content {
+       .modal-content {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -518,6 +518,8 @@
             border-radius: 15px;
             width: 90%;
             max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         .close-btn {
@@ -806,6 +808,109 @@
             color: #666;
             margin-top: 0.25rem;
         }
+
+.materials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .material-item {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #007bff;
+        }
+
+        .material-item.obtained {
+            opacity: 0.7;
+            border-left-color: #28a745;
+        }
+
+        .material-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .material-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .material-name.obtained {
+            text-decoration: line-through;
+            color: #28a745;
+        }
+
+        .material-category {
+            font-size: 0.8rem;
+            color: #666;
+            background: #f8f9fa;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+        }
+
+        .material-progress {
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            background: #f0f0f0;
+            border-radius: 10px;
+            height: 6px;
+            margin: 0.25rem 0;
+        }
+
+        .progress-fill {
+            background: #28a745;
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
+        .material-cost {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+
+        .material-notes {
+            font-size: 0.8rem;
+            color: #666;
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+
+        .material-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn-obtain {
+            background: #28a745;
+            color: white;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .filter-materials {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
     </style>
 </head>
 <body>
@@ -1105,6 +1210,72 @@
             <button class="btn btn-primary" onclick="saveProject()">Save Project</button>
         </div>
     </div>
+
+<!-- Materials Modal -->
+<div id="materialsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3 id="materialsModalTitle">Add Material</h3>
+        <div class="form-group">
+            <label for="materialProject">Project:</label>
+            <select id="materialProject">
+                <option value="">Select project...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="materialName">Material Name:</label>
+            <input type="text" id="materialName" placeholder="e.g., 2x4 lumber, fence posts, screws">
+        </div>
+        <div class="form-group">
+            <label for="materialCategory">Category:</label>
+            <select id="materialCategory">
+                <option value="lumber">🪵 Lumber</option>
+                <option value="hardware">🔩 Hardware</option>
+                <option value="tools">🔨 Tools</option>
+                <option value="concrete">🧱 Concrete/Masonry</option>
+                <option value="paint">🎨 Paint/Finish</option>
+                <option value="electrical">⚡ Electrical</option>
+                <option value="other">📦 Other</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="materialQuantityNeeded">Quantity Needed:</label>
+            <input type="number" id="materialQuantityNeeded" placeholder="e.g., 10" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+            <label for="materialUnit">Unit:</label>
+            <input type="text" id="materialUnit" placeholder="e.g., pieces, feet, bags, gallons">
+        </div>
+        <div class="form-group">
+            <label for="materialEstimatedCost">Estimated Cost ($):</label>
+            <input type="number" id="materialEstimatedCost" placeholder="e.g., 25.99" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+            <label for="materialNotes">Notes:</label>
+            <textarea id="materialNotes" rows="2" placeholder="e.g., Get from Home Depot, pressure treated"></textarea>
+        </div>
+        <input type="hidden" id="materialEditId">
+        <button class="btn btn-primary" onclick="saveMaterial()">Save Material</button>
+    </div>
+</div>
+
+<!-- Mark Material Obtained Modal -->
+<div id="obtainedModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3>Mark Material as Obtained</h3>
+        <div class="form-group">
+            <label for="obtainedQuantity">Quantity Obtained:</label>
+            <input type="number" id="obtainedQuantity" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+            <label for="actualCost">Actual Cost ($):</label>
+            <input type="number" id="actualCost" step="0.01" min="0">
+        </div>
+        <input type="hidden" id="obtainedMaterialId">
+        <button class="btn btn-primary" onclick="markMaterialObtained()">Mark as Obtained</button>
+    </div>
+</div>
     
     <!-- Delete Confirmation Modal -->
     <div id="deleteConfirmModal" class="modal">
@@ -1664,16 +1835,18 @@
         }
         
         function closeModal() {
-            document.getElementById('photoModal').style.display = 'none';
-            document.getElementById('noteModal').style.display = 'none';
-            document.getElementById('pastureModal').style.display = 'none';
-            document.getElementById('assignModal').style.display = 'none';
-            document.getElementById('animalModal').style.display = 'none';
-            document.getElementById('treatmentModal').style.display = 'none';
-            document.getElementById('deleteConfirmModal').style.display = 'none';
-document.getElementById('projectModal').style.display = 'none';
-clearModalInputs();
-        }
+    document.getElementById('photoModal').style.display = 'none';
+    document.getElementById('noteModal').style.display = 'none';
+    document.getElementById('pastureModal').style.display = 'none';
+    document.getElementById('assignModal').style.display = 'none';
+    document.getElementById('animalModal').style.display = 'none';
+    document.getElementById('treatmentModal').style.display = 'none';
+    document.getElementById('deleteConfirmModal').style.display = 'none';
+    document.getElementById('projectModal').style.display = 'none';
+    document.getElementById('materialsModal').style.display = 'none';
+    document.getElementById('obtainedModal').style.display = 'none';
+    clearModalInputs();
+}
         
         function clearModalInputs() {
             document.getElementById('photoLocation').value = '';
@@ -1706,7 +1879,19 @@ document.getElementById('projectDueDate').value = '';
 document.getElementById('projectDescription').value = '';
 document.getElementById('projectModal').removeAttribute('data-edit-id');            
         }
-        
+
+        document.getElementById('materialProject').value = '';
+            document.getElementById('materialName').value = '';
+            document.getElementById('materialCategory').value = 'lumber';
+            document.getElementById('materialQuantityNeeded').value = '';
+            document.getElementById('materialUnit').value = '';
+            document.getElementById('materialEstimatedCost').value = '';
+            document.getElementById('materialNotes').value = '';
+            document.getElementById('materialEditId').value = '';
+            document.getElementById('materialsModalTitle').textContent = 'Add Material';
+            document.getElementById('obtainedQuantity').value = '';
+            document.getElementById('actualCost').value = '';
+            document.getElementById('obtainedMaterialId').value = '';        
         function savePhoto() {
             const fileInput = document.getElementById('cameraInput');
             const location = document.getElementById('photoLocation').value;
@@ -2966,18 +3151,290 @@ function displayProjects() {
                     </div>
                 </div>
                 ${project.description ? `<p style="color: #666; margin: 1rem 0;">${project.description}</p>` : ''}
+                
+                ${(() => {
+                    const projectMaterials = materials.filter(m => m.projectId == project.id);
+                    if (projectMaterials.length === 0) {
+                        return `<p style="color: #888; font-style: italic; margin: 1rem 0;">No materials added yet</p>`;
+                    }
+                    
+                    const totalCost = projectMaterials.reduce((sum, m) => sum + (m.actualCost || m.estimatedCost), 0);
+                    const obtainedCount = projectMaterials.filter(m => m.obtained).length;
+                    
+                    return `
+                        <div style="margin: 1rem 0; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <h4 style="margin: 0; color: #666;">📦 Materials (${obtainedCount}/${projectMaterials.length})</h4>
+                                <span style="font-weight: bold; color: #228B22;">$${totalCost.toFixed(2)}</span>
+                            </div>
+                            ${projectMaterials.map(material => {
+                                const categoryIcon = {
+                                    lumber: '🪵', hardware: '🔩', tools: '🔨', 
+                                    concrete: '🧱', paint: '🎨', electrical: '⚡', other: '📦'
+                                }[material.category] || '📦';
+                                
+                                return `
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; margin-bottom: 0.5rem; background: white; border-radius: 6px; border-left: 3px solid ${material.obtained ? '#28a745' : '#007bff'};">
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: bold; ${material.obtained ? 'text-decoration: line-through; color: #28a745;' : ''}">${categoryIcon} ${material.name}</div>
+                                            <div style="font-size: 0.8rem; color: #666;">
+                                                ${material.quantityObtained}/${material.quantityNeeded} ${material.unit} • $${(material.actualCost || material.estimatedCost).toFixed(2)}
+                                            </div>
+                                            ${material.notes ? `<div style="font-size: 0.7rem; color: #888; font-style: italic;">${material.notes}</div>` : ''}
+                                        </div>
+                                        <div style="display: flex; gap: 0.25rem;">
+                                            ${!material.obtained ? 
+                                                `<button onclick="markAsObtained(${material.id})" style="background: #28a745; color: white; border: none; border-radius: 3px; padding: 0.2rem 0.4rem; font-size: 0.7rem; cursor: pointer;">✓ Got it</button>` : 
+                                                `<span style="color: #28a745; font-size: 0.8rem;">✅</span>`
+                                            }
+                                            <button onclick="editMaterial(${material.id})" style="background: #ffc107; color: black; border: none; border-radius: 3px; padding: 0.2rem 0.4rem; font-size: 0.7rem; cursor: pointer;">Edit</button>
+                                            <button onclick="deleteMaterial(${material.id})" style="background: #dc3545; color: white; border: none; border-radius: 3px; padding: 0.2rem 0.4rem; font-size: 0.7rem; cursor: pointer;">×</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                })()}
             </div>
         `;
     }).join('');
 }
 
+// Materials Management
+let materials = JSON.parse(localStorage.getItem('materials') || '[]');
+
 function viewMaterials() {
-    alert('Materials management feature coming soon!');
+    // Update project dropdown
+    updateMaterialProjectDropdown();
+    
+    // For now, just open the add material modal
+    document.getElementById('materialsModal').style.display = 'block';
+}
+
+function updateMaterialProjectDropdown() {
+    const select = document.getElementById('materialProject');
+    select.innerHTML = '<option value="">Select project...</option>';
+    
+    projects.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project.id;
+        option.textContent = project.name;
+        select.appendChild(option);
+    });
+}
+
+function saveMaterial() {
+    const projectId = document.getElementById('materialProject').value;
+    const name = document.getElementById('materialName').value.trim();
+    const category = document.getElementById('materialCategory').value;
+    const quantityNeeded = parseFloat(document.getElementById('materialQuantityNeeded').value) || 0;
+    const unit = document.getElementById('materialUnit').value.trim();
+    const estimatedCost = parseFloat(document.getElementById('materialEstimatedCost').value) || 0;
+    const notes = document.getElementById('materialNotes').value.trim();
+    const editId = document.getElementById('materialEditId').value;
+    
+    if (!projectId) {
+        alert('Please select a project');
+        return;
+    }
+    
+    if (!name) {
+        alert('Please enter a material name');
+        return;
+    }
+    
+    if (editId) {
+        // Edit existing material
+        const materialIndex = materials.findIndex(m => m.id == editId);
+        if (materialIndex !== -1) {
+            materials[materialIndex] = {
+                ...materials[materialIndex],
+                projectId: projectId,
+                name: name,
+                category: category,
+                quantityNeeded: quantityNeeded,
+                unit: unit,
+                estimatedCost: estimatedCost,
+                notes: notes
+            };
+        }
+        alert('Material updated successfully!');
+    } else {
+        // Add new material
+        const materialData = {
+            id: Date.now(),
+            projectId: projectId,
+            name: name,
+            category: category,
+            quantityNeeded: quantityNeeded,
+            quantityObtained: 0,
+            unit: unit,
+            estimatedCost: estimatedCost,
+            actualCost: 0,
+            notes: notes,
+            obtained: false,
+            created: new Date().toISOString()
+        };
+        materials.push(materialData);
+        alert('Material added successfully!');
+    }
+    
+    localStorage.setItem('materials', JSON.stringify(materials));
+    closeModal();
 }
 
 function projectReports() {
-    alert('Project reports feature coming soon!');
+    // Calculate totals
+    const totalProjects = projects.length;
+    const totalMaterials = materials.length;
+    const obtainedMaterials = materials.filter(m => m.obtained).length;
+    const totalEstimated = materials.reduce((sum, m) => sum + m.estimatedCost, 0);
+    const totalActual = materials.reduce((sum, m) => sum + m.actualCost, 0);
+    
+    // Project by project breakdown
+    let reportContent = `📊 PROJECT REPORTS\n\n`;
+    reportContent += `OVERVIEW: ${totalProjects} projects • ${obtainedMaterials}/${totalMaterials} materials obtained • $${totalActual.toFixed(2)} of $${totalEstimated.toFixed(2)} spent\n\n`;
+    
+    // Sort projects by priority (urgent first)
+    const priorityOrder = {'urgent': 4, 'high': 3, 'medium': 2, 'low': 1};
+    const sortedProjects = projects.sort((a, b) => 
+        (priorityOrder[b.priority] || 1) - (priorityOrder[a.priority] || 1)
+    );
+    
+    reportContent += `━━━ PROJECT BREAKDOWN ━━━\n\n`;
+    
+    sortedProjects.forEach(project => {
+        const projectMaterials = materials.filter(m => m.projectId == project.id);
+        const obtainedCount = projectMaterials.filter(m => m.obtained).length;
+        const projectEstimated = projectMaterials.reduce((sum, m) => sum + m.estimatedCost, 0);
+        const projectActual = projectMaterials.reduce((sum, m) => sum + m.actualCost, 0);
+        const variance = projectActual - projectEstimated;
+        
+        const priorityIcon = project.priority === 'urgent' ? '🚨' : 
+                            project.priority === 'high' ? '🔴' : 
+                            project.priority === 'medium' ? '🟡' : '🟢';
+        
+        const dueDate = project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'No due date';
+        const isOverdue = project.dueDate && new Date(project.dueDate) < new Date();
+        
+        reportContent += `${priorityIcon} ${project.name.toUpperCase()}${isOverdue ? ' [OVERDUE]' : ''}\n`;
+        reportContent += `Due: ${dueDate} • Materials: ${obtainedCount}/${projectMaterials.length}\n`;
+        reportContent += `Budget: $${projectEstimated.toFixed(2)} • Spent: $${projectActual.toFixed(2)}`;
+        
+        if (variance !== 0) {
+            reportContent += variance > 0 ? ` [OVER by $${variance.toFixed(2)}]` : ` [UNDER by $${Math.abs(variance).toFixed(2)}]`;
+        }
+        reportContent += `\n\n`;
+    });
+    
+    // Shopping list by priority
+    const needToObtain = materials.filter(m => !m.obtained);
+    if (needToObtain.length > 0) {
+        reportContent += `━━━ SHOPPING LIST (${needToObtain.length} items) ━━━\n\n`;
+        
+        // Group by project priority
+        const shoppingByPriority = {};
+        needToObtain.forEach(material => {
+            const project = projects.find(p => p.id == material.projectId);
+            const priority = project ? project.priority : 'unknown';
+            if (!shoppingByPriority[priority]) {
+                shoppingByPriority[priority] = [];
+            }
+            shoppingByPriority[priority].push({...material, projectName: project?.name || 'Unknown Project'});
+        });
+        
+        // Display by priority order
+        ['urgent', 'high', 'medium', 'low'].forEach(priority => {
+            if (shoppingByPriority[priority]) {
+                const priorityIcon = priority === 'urgent' ? '🚨' : 
+                                   priority === 'high' ? '🔴' : 
+                                   priority === 'medium' ? '🟡' : '🟢';
+                
+                reportContent += `${priorityIcon} ${priority.toUpperCase()} PRIORITY:\n`;
+                
+                shoppingByPriority[priority].forEach(item => {
+                    const categoryIcon = {
+                        lumber: '🪵', hardware: '🔩', tools: '🔨', 
+                        concrete: '🧱', paint: '🎨', electrical: '⚡', other: '📦'
+                    }[item.category] || '📦';
+                    
+                    reportContent += `  ${categoryIcon} ${item.name} (${item.quantityNeeded} ${item.unit}) - $${item.estimatedCost.toFixed(2)}\n`;
+                    reportContent += `      for ${item.projectName}`;
+                    if (item.notes) reportContent += ` • ${item.notes}`;
+                    reportContent += `\n`;
+                });
+                reportContent += `\n`;
+            }
+        });
+        
+        const totalShoppingCost = needToObtain.reduce((sum, m) => sum + m.estimatedCost, 0);
+        reportContent += `TOTAL SHOPPING COST: $${totalShoppingCost.toFixed(2)}\n\n`;
+    } else {
+        reportContent += `✅ ALL MATERIALS OBTAINED!\n\n`;
+    }
+    
+    alert(reportContent);
 }
+
+function markAsObtained(materialId) {
+    const material = materials.find(m => m.id == materialId);
+    if (!material) return;
+    
+    document.getElementById('obtainedQuantity').value = material.quantityNeeded;
+    document.getElementById('actualCost').value = material.estimatedCost;
+    document.getElementById('obtainedMaterialId').value = materialId;
+    document.getElementById('obtainedModal').style.display = 'block';
+}
+
+function markMaterialObtained() {
+    const materialId = document.getElementById('obtainedMaterialId').value;
+    const quantityObtained = parseFloat(document.getElementById('obtainedQuantity').value) || 0;
+    const actualCost = parseFloat(document.getElementById('actualCost').value) || 0;
+    
+    const material = materials.find(m => m.id == materialId);
+    if (material) {
+        material.quantityObtained = quantityObtained;
+        material.actualCost = actualCost;
+        material.obtained = quantityObtained >= material.quantityNeeded;
+        
+        localStorage.setItem('materials', JSON.stringify(materials));
+        displayProjects();
+        closeModal();
+        alert('Material marked as obtained!');
+    }
+}
+
+function editMaterial(materialId) {
+    const material = materials.find(m => m.id == materialId);
+    if (!material) return;
+    
+    updateMaterialProjectDropdown();
+    
+    document.getElementById('materialProject').value = material.projectId;
+    document.getElementById('materialName').value = material.name;
+    document.getElementById('materialCategory').value = material.category;
+    document.getElementById('materialQuantityNeeded').value = material.quantityNeeded;
+    document.getElementById('materialUnit').value = material.unit;
+    document.getElementById('materialEstimatedCost').value = material.estimatedCost;
+    document.getElementById('materialNotes').value = material.notes;
+    document.getElementById('materialEditId').value = materialId;
+    document.getElementById('materialsModalTitle').textContent = 'Edit Material';
+    
+    document.getElementById('materialsModal').style.display = 'block';
+}
+
+function deleteMaterial(materialId) {
+    const material = materials.find(m => m.id == materialId);
+    if (!material) return;
+    
+    if (confirm(`Are you sure you want to delete "${material.name}"?`)) {
+        materials = materials.filter(m => m.id != materialId);
+        localStorage.setItem('materials', JSON.stringify(materials));
+        displayProjects();
+        alert('Material deleted successfully!');
+    }
+}        
 </script>
 </body>
 </html>
