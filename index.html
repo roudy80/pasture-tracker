@@ -1929,13 +1929,35 @@ try {
     oldInput.parentNode.replaceChild(newInput, oldInput);
 } catch (error) {
     console.log('Input replacement failed, trying standard clear:', error);
-    document.getElementById('cameraInput').value = '';
+    
 }
                 
                 alert('Photo saved successfully!');
             };
+
+                reader.onerror = function(error) {
+                console.error('Error reading file:', error);
+                alert('Error saving photo. Please try                           again.');
+      
+};
+
+// Better mobile file input clearing
+reader.onloadend = function() {
+    setTimeout(() => {
+        try {
+            const oldInput = document.getElementById('cameraInput');
+            const newInput = oldInput.cloneNode(true);
+            newInput.value = '';
+            oldInput.parentNode.replaceChild(newInput, oldInput);
+        } catch (error) {
+            console.log('Input replacement failed:', error);
+        }
+    }, 100);
+};
+
+reader.readAsDataURL(file);
             
-            reader.readAsDataURL(file);
+           
         }
         
         function saveNote() {
