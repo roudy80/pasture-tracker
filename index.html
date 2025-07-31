@@ -1019,12 +1019,14 @@
         </div>
     </div>
     <!-- Projects Tab -->
-        <div id="projectsTab" class="tab-content">
-            <div class="action-buttons">
-                <button class="btn btn-primary" onclick="addProject()">🔧 Add Project</button>
-                <button class="btn btn-secondary" onclick="viewMaterials()">📋 Materials</button>
-                <button class="btn btn-secondary" onclick="projectReports()">📊 Reports</button>
-            </div>
+        <div class="action-buttons">
+    <button class="btn btn-primary" onclick="addProject()">🔧 Add Project</button>
+    <button class="btn btn-secondary" onclick="viewMaterials()">📋 Materials</button>
+    <button class="btn btn-secondary" onclick="projectReports()">📊 Reports</button>
+    <button class="btn btn-secondary" onclick="backupData()">💾 Backup</button>
+    <input type="file" id="restoreInput" accept=".json" style="display: none;" onchange="restoreData()">
+    <button class="btn btn-secondary" onclick="document.getElementById('restoreInput').click()">📁 Restore</button>
+</div>
              
             <div id="projectsList" class="pastures-container">
                 <!-- Projects will be displayed here -->
@@ -1319,6 +1321,8 @@
             displayAnimals();
             displayProjects();
             requestNotificationPermission();                     loadWeather();
+
+            initializeOfflineMode();
             
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('data:text/javascript,console.log("SW registered")');
@@ -3040,6 +3044,121 @@ ${breedingInfo ? `<div style="font-size: 0.8rem; color: #228B22; margin-top: 0.2
         
         // Refresh weather every 30 minutes
         setInterval(loadWeather, 30 * 60 * 1000);
+
+        // Offline functionality
+function initializeOfflineMode() {
+    updateConnectionStatus();
+    
+    window.addEventListener('online', function() {
+        updateConnectionStatus();
+        showConnectionMessage('🟢 Back online!', 'success');
+    });
+    
+    window.addEventListener('offline', function() {
+        updateConnectionStatus();
+        showConnectionMessage('🔴 Working offline', 'warning');
+    });
+}
+
+function updateConnectionStatus() {
+    const isOnline = navigator.onLine;
+    const statusElement = document.querySelector('.location');
+    if (statusElement) {
+        const currentText = statusElement.textContent;
+        if (isOnline) {
+            statusElement.textContent = currentText.replace(' (OFFLINE)', '');
+        } else {
+            if (!currentText.includes('(OFFLINE)')) {
+                statusElement.textContent = currentText + ' (OFFLINE)';
+            }
+        }
+    }
+}
+
+function showConnectionMessage(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.style.cssText = `
+        position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+        background: ${type === 'success' ? '#d4edda' : '#fff3cd'};
+        color: ${type === 'success' ? '#155724' : '#856404'};
+        padding: 0.75rem 1rem; border-radius: 5px; z-index: 1001;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    `;
+    alertDiv.textContent = message;
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
+    }, 3000);
+}
+
+
+// Data backup and restore functions
+function backupData() {
+    const backupData = {
+        version: '2.08',
+        timestamp: new Date().toISOString(),
+        data: {
+            pasturePhotos: JSON.parse(localStorage.getItem('pasturePhotos') || '[]'),
+            pastureNotes: JSON.parse(localStorage.getItem('pastureNotes') || '[]'),
+            pastures: JSON.parse(localStorage.getItem('pastures') || '[]'),
+            animals: JSON.parse(localStorage.getItem('animals') || '[]'),
+            treatments: JSON.parse(localStorage.getItem('treatments') || '[]'),
+            projects: JSON.parse(localStorage.getItem('projects') || '[]'),
+            materials: JSON.parse(localStorage.getItem('materials') || '[]'),
+            burnBanStatus: JSON.parse(localStorage.getItem('burnBanStatus') || '{"fayette": {"active": false, "expires": ""}}')
+        }
+    };
+    
+    const dataStr = JSON.stringify(backupData, null, 2);
+    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+    
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(dataBlob);
+    link.download = `pasture-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    
+    const totalItems = Object.values(backupData.data).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 1), 0);
+    alert(`Backup created! ${totalItems} items backed up.`);
+}
+
+function restoreData() {
+    const fileInput = document.getElementById('restoreInput');
+    const file = fileInput.files[0];
+    
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const backupData = JSON.parse(e.target.result);
+            
+            if (!backupData.data) {
+                alert('Invalid backup file format');
+                return;
+            }
+            
+            const confirmRestore = confirm(`Restore from backup dated ${new Date(backupData.timestamp).toLocaleDateString()}?\n\nThis will replace ALL current data!`);
+            
+            if (confirmRestore) {
+                // Restore all data
+                Object.keys(backupData.data).forEach(key => {
+                    localStorage.setItem(key, JSON.stringify(backupData.data[key]));
+                });
+                
+                // Reload the page to refresh all displays
+                location.reload();
+            }
+        } catch (error) {
+            alert('Error reading backup file: ' + error.message);
+        }
+    };
+    
+    reader.readAsText(file);
+    fileInput.value = ''; // Clear the input
+}
         
         // Close modal on outside click
         window.onclick = function(event) {
