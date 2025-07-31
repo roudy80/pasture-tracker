@@ -913,7 +913,18 @@
             </div>
         </div>
     </div>
-
+    <!-- Projects Tab -->
+        <div id="projectsTab" class="tab-content">
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="addProject()">🔧 Add Project</button>
+                <button class="btn btn-secondary" onclick="viewMaterials()">📋 Materials</button>
+                <button class="btn btn-secondary" onclick="projectReports()">📊 Reports</button>
+            </div>
+             
+            <div id="projectsList" class="pastures-container">
+                <!-- Projects will be displayed here -->
+            </div>
+        </div>
     <!-- Photo Modal -->
     <div id="photoModal" class="modal">
         <div class="modal-content">
@@ -1065,6 +1076,36 @@
         </div>
     </div>
 
+    <!-- Project Modal -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3>Add New Project</h3>
+            <div class="form-group">
+                <label for="projectName">Project Name:</label>
+                <input type="text" id="projectName" placeholder="e.g., Fix South Fence, Barn Roof Repair">
+            </div>
+            <div class="form-group">
+                <label for="projectPriority">Priority:</label>
+                <select id="projectPriority">
+                    <option value="low">🟢 Low</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="high">🔴 High</option>
+                    <option value="urgent">🚨 Urgent</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="projectDueDate">Target Completion:</label>
+                <input type="date" id="projectDueDate">
+            </div>
+            <div class="form-group">
+                <label for="projectDescription">Description:</label>
+                <textarea id="projectDescription" rows="3" placeholder="e.g., Replace broken fence posts and wire on south boundary"></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="saveProject()">Save Project</button>
+        </div>
+    </div>
+    
     <!-- Delete Confirmation Modal -->
     <div id="deleteConfirmModal" class="modal">
         <div class="modal-content">
@@ -1105,8 +1146,8 @@
             initializeBurnBanControls();
             displayPastures();
             displayAnimals();
-            requestNotificationPermission();
-            loadWeather();
+            displayProjects();
+            requestNotificationPermission();                     loadWeather();
             
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('data:text/javascript,console.log("SW registered")');
@@ -1630,7 +1671,8 @@
             document.getElementById('animalModal').style.display = 'none';
             document.getElementById('treatmentModal').style.display = 'none';
             document.getElementById('deleteConfirmModal').style.display = 'none';
-            clearModalInputs();
+document.getElementById('projectModal').style.display = 'none';
+clearModalInputs();
         }
         
         function clearModalInputs() {
@@ -1658,6 +1700,11 @@
             document.getElementById('animalModal').removeAttribute('data-edit-id');
             document.getElementById('pastureModalTitle').textContent = 'Add New Pasture';
             document.getElementById('deletePastureBtn').style.display = 'none';
+document.getElementById('projectName').value = '';
+document.getElementById('projectPriority').value = 'low';
+document.getElementById('projectDueDate').value = '';
+document.getElementById('projectDescription').value = '';
+document.getElementById('projectModal').removeAttribute('data-edit-id');            
         }
         
         function savePhoto() {
@@ -2806,6 +2853,131 @@ ${breedingInfo ? `<div style="font-size: 0.8rem; color: #228B22; margin-top: 0.2
                 closePhotoView();
             }
         }
-    </script>
+       // Project Management Functions
+let projects = JSON.parse(localStorage.getItem('projects') || '[]');
+
+function addProject() {
+    document.getElementById('projectModal').style.display = 'block';
+}
+
+function saveProject() {
+    const name = document.getElementById('projectName').value.trim();
+    const priority = document.getElementById('projectPriority').value;
+    const dueDate = document.getElementById('projectDueDate').value;
+    const description = document.getElementById('projectDescription').value.trim();
+    
+    if (!name) {
+        alert('Please enter a project name');
+        return;
+    }
+    
+    const editId = document.getElementById('projectModal').getAttribute('data-edit-id');
+
+    if (editId) {
+        // Edit existing project
+        const projectIndex = projects.findIndex(p => p.id == editId);
+        if (projectIndex !== -1) {
+            projects[projectIndex] = {
+                ...projects[projectIndex],
+                name: name,
+                priority: priority,
+                dueDate: dueDate,
+                description: description
+            };
+        }
+        document.getElementById('projectModal').removeAttribute('data-edit-id');
+        alert('Project updated successfully!');
+    } else {
+        // Add new project
+        const projectData = {
+            id: Date.now(),
+            name: name,
+            priority: priority,
+            dueDate: dueDate,
+            description: description,
+            tasks: [],
+            completed: false,
+            created: new Date().toISOString()
+        };
+        projects.push(projectData);
+        alert('Project added successfully!');
+    }
+
+    localStorage.setItem('projects', JSON.stringify(projects));
+    displayProjects();
+    closeModal();
+}
+
+function editProject(projectId) {
+    const project = projects.find(p => p.id == projectId);
+    if (!project) return;
+    
+    document.getElementById('projectName').value = project.name;
+    document.getElementById('projectPriority').value = project.priority;
+    document.getElementById('projectDueDate').value = project.dueDate || '';
+    document.getElementById('projectDescription').value = project.description || '';
+    
+    document.getElementById('projectModal').setAttribute('data-edit-id', projectId);
+    document.getElementById('projectModal').style.display = 'block';
+}
+
+function deleteProject(projectId) {
+    const project = projects.find(p => p.id == projectId);
+    if (!project) return;
+    
+    if (confirm(`Are you sure you want to delete "${project.name}"?`)) {
+        projects = projects.filter(p => p.id != projectId);
+        localStorage.setItem('projects', JSON.stringify(projects));
+        displayProjects();
+        alert('Project deleted successfully!');
+    }
+}
+
+function displayProjects() {
+    const container = document.getElementById('projectsList');
+    
+    if (projects.length === 0) {
+        container.innerHTML = `
+            <div class="empty-pasture">
+                <h3>🔧 No Projects Yet</h3>
+                <p>Click "Add Project" above to start tracking your farm projects!</p>
+                <p style="margin-top: 1rem;"><em>Perfect for fence repairs, barn maintenance, equipment fixes, etc.</em></p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = projects.map(project => {
+        const priorityIcon = project.priority === 'urgent' ? '🚨' : 
+                            project.priority === 'high' ? '🔴' : 
+                            project.priority === 'medium' ? '🟡' : '🟢';
+        const dueDate = project.dueDate ? new Date(project.dueDate).toLocaleDateString() : 'No due date';
+        
+        return `
+            <div class="pasture-card" style="border-left-color: ${project.priority === 'urgent' || project.priority === 'high' ? '#dc3545' : '#228B22'};">
+                <div class="pasture-header">
+                    <div>
+                        <h3 class="pasture-name">${priorityIcon} ${project.name}</h3>
+                        <div class="pasture-stats">Due: ${dueDate} • Created: ${new Date(project.created).toLocaleDateString()}</div>
+                    </div>
+                    <div class="pasture-actions">
+                        <button class="btn-small btn-edit" onclick="editProject(${project.id})">Edit</button>
+                        <button class="btn-small btn-delete" onclick="deleteProject(${project.id})">Delete</button>
+                    </div>
+                </div>
+                ${project.description ? `<p style="color: #666; margin: 1rem 0;">${project.description}</p>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+function viewMaterials() {
+    alert('Materials management feature coming soon!');
+}
+
+function projectReports() {
+    alert('Project reports feature coming soon!');
+}
+</script>
 </body>
 </html>
