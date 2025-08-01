@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pasture Tracker</title>
+<!-- ADD THESE LINES -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <link rel="manifest" href="data:application/json,{%22name%22:%22Pasture%20Tracker%22,%22short_name%22:%22Pasture%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%23228B22%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20fill='%23228B22'%20width='100'%20height='100'/%3E%3Ctext%20y='70'%20font-size='60'%20text-anchor='middle'%20x='50'%20fill='white'%3EP%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22any%22,%22type%22:%22image/svg+xml%22}]}">
     <style>
         * {
@@ -921,10 +924,12 @@
 
     <div class="container">
         <div class="tab-navigation">
-            <button class="tab-button active" onclick="switchTab('weather')">🌤️ Weather</button>
-            <button class="tab-button" onclick="switchTab('pasture')">🌾 Pasture</button>
-            <button class="tab-button" onclick="switchTab('animals')">🐄 Animals</button>
-            <button class="tab-button" onclick="switchTab('projects')">🔧 Projects</button>        </div>
+    <button class="tab-button active" onclick="switchTab('weather')">🌤️ Weather</button>
+    <button class="tab-button" onclick="switchTab('pasture')">🌾 Pasture</button>
+    <button class="tab-button" onclick="switchTab('animals')">🐄 Animals</button>
+    <button class="tab-button" onclick="switchTab('map')">🗺️ Map</button>
+    <button class="tab-button" onclick="switchTab('projects')">🔧 Projects</button>
+</div>
         
         <!-- Weather Tab -->
         <div id="weatherTab" class="tab-content active">
@@ -1017,21 +1022,45 @@
                 <!-- Animals will be displayed here -->
             </div>
         </div>
-    </div>
-    <!-- Projects Tab -->
-        <div class="action-buttons">
-    <button class="btn btn-primary" onclick="addProject()">🔧 Add Project</button>
-    <button class="btn btn-secondary" onclick="viewMaterials()">📋 Materials</button>
-    <button class="btn btn-secondary" onclick="projectReports()">📊 Reports</button>
-    <button class="btn btn-secondary" onclick="backupData()">💾 Backup</button>
-    <input type="file" id="restoreInput" accept=".json" style="display: none;" onchange="restoreData()">
-    <button class="btn btn-secondary" onclick="document.getElementById('restoreInput').click()">📁 Restore</button>
-</div>
-             
-            <div id="projectsList" class="pastures-container">
-                <!-- Projects will be displayed here -->
+        
+        <!-- Map Tab -->
+        <div id="mapTab" class="tab-content">
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="startShredding" onclick="toggleShredding()">🟢 START SHREDDING</button>
+                <button class="btn btn-secondary" onclick="openMapSettings()">🔧 Settings</button>
+                <button class="btn btn-secondary" onclick="clearCurrentTrack()">🗑️ Clear Track</button>
+            </div>
+            
+            <div id="shredding-status" class="hidden" style="background: #d4edda; padding: 1rem; border-radius: 8px; margin: 1rem 0; text-align: center;">
+                <h3 style="color: #155724; margin: 0;">🔴 ACTIVELY SHREDDING</h3>
+                <div id="current-stats" style="margin-top: 0.5rem; font-size: 0.9rem; color: #155724;"></div>
+            </div>
+            
+            <div id="map" style="height: 400px; width: 100%; border-radius: 15px; margin: 1rem 0;"></div>
+            
+            <div id="track-summary" class="hidden" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                <h4>📊 Current Session</h4>
+                <div id="session-stats"></div>
             </div>
         </div>
+    </div>
+    
+    <!-- Projects Tab -->
+    <div id="projectsTab" class="tab-content">
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="addProject()">🔧 Add Project</button>
+            <button class="btn btn-secondary" onclick="viewMaterials()">📋 Materials</button>
+            <button class="btn btn-secondary" onclick="projectReports()">📊 Reports</button>
+            <button class="btn btn-secondary" onclick="backupData()">💾 Backup</button>
+            <input type="file" id="restoreInput" accept=".json" style="display: none;" onchange="restoreData()">
+            <button class="btn btn-secondary" onclick="document.getElementById('restoreInput').click()">📁 Restore</button>
+        </div>
+             
+        <div id="projectsList" class="pastures-container">
+            <!-- Projects will be displayed here -->
+        </div>
+    </div>
+    
     <!-- Photo Modal -->
     <div id="photoModal" class="modal">
         <div class="modal-content">
@@ -1305,15 +1334,31 @@
         const LON = -96.8767;
         
         // Global variables
-        let currentWeather = null;
-        let photos = JSON.parse(localStorage.getItem('pasturePhotos') || '[]');
-        let notes = JSON.parse(localStorage.getItem('pastureNotes') || '[]');
-        let pastures = JSON.parse(localStorage.getItem('pastures') || '[]');
-        let animals = JSON.parse(localStorage.getItem('animals') || '[]');
-        let burnBanStatus = JSON.parse(localStorage.getItem('burnBanStatus') || '{"fayette": {"active": false, "expires": ""}}');
-        let treatments = JSON.parse(localStorage.getItem('treatments') || '[]');
-        let currentAnimalFilter = 'all';
-        
+let currentWeather = null;
+let photos = JSON.parse(localStorage.getItem('pasturePhotos') || '[]');
+let notes = JSON.parse(localStorage.getItem('pastureNotes') || '[]');
+let pastures = JSON.parse(localStorage.getItem('pastures') || '[]');
+let animals = JSON.parse(localStorage.getItem('animals') || '[]');
+let burnBanStatus = JSON.parse(localStorage.getItem('burnBanStatus') || '{"fayette": {"active": false, "expires": ""}}');
+let treatments = JSON.parse(localStorage.getItem('treatments') || '[]');
+let currentAnimalFilter = 'all';
+
+// MAP VARIABLES - ADD THESE LINES
+let map = null;
+let isShredding = false;
+let currentTrack = [];
+let trackLayer = null;
+let coverageLayer = null;
+let shredderWidth = 5; // feet
+let watchId = null;
+let shredTracks = JSON.parse(localStorage.getItem('shredTracks') || '[]');
+let currentSession = {
+    startTime: null,
+    endTime: null,
+    totalArea: 0,
+    trackPoints: []
+};
+     
         // Initialize app when page loads
         document.addEventListener('DOMContentLoaded', function() {
             initializeBurnBanControls();
@@ -1321,8 +1366,29 @@
             displayAnimals();
             displayProjects();
             requestNotificationPermission();                     loadWeather();
-
             initializeOfflineMode();
+            
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('data:text/javascript,console.log("SW registered")');
+            }
+        });
+        
+        // Burn ban functions
+        function initializeBurnBanControls() {
+            updateBurnBanDisplay('fayette');
+        }
+
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeBurnBanControls();
+            displayPastures();
+            displayAnimals();
+            displayProjects();
+            requestNotificationPermission();
+            loadWeather();
+            initializeOfflineMode();
+            
+            initializeMap();
             
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('data:text/javascript,console.log("SW registered")');
@@ -3615,7 +3681,240 @@ function deleteMaterial(materialId) {
         displayProjects();
         alert('Material deleted successfully!');
     }
-}        
+} 
+// MAP FUNCTIONS - ADD ALL OF THESE AT THE END OF YOUR JAVASCRIPT
+
+        function initializeMap() {
+            // Initialize map centered on your ranch (LaGrange area)
+            map = L.map('map').setView([29.791611, -96.947750], 16);
+            
+            // Add satellite imagery
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 18
+            }).addTo(map);
+            
+            // Initialize track layer
+            trackLayer = L.layerGroup().addTo(map);
+            coverageLayer = L.layerGroup().addTo(map);
+            
+            // Load existing tracks
+            loadHistoricalTracks();
+        }
+
+        function toggleShredding() {
+            const button = document.getElementById('startShredding');
+            const statusDiv = document.getElementById('shredding-status');
+            
+            if (!isShredding) {
+                startShredding();
+                button.innerHTML = '🔴 STOP SHREDDING';
+                button.className = 'btn btn-delete';
+                statusDiv.classList.remove('hidden');
+            } else {
+                stopShredding();
+                button.innerHTML = '🟢 START SHREDDING';
+                button.className = 'btn btn-primary';
+                statusDiv.classList.add('hidden');
+            }
+        }
+
+        function startShredding() {
+            if (!navigator.geolocation) {
+                alert('GPS not available on this device');
+                return;
+            }
+            
+            isShredding = true;
+            currentTrack = [];
+            currentSession = {
+                startTime: new Date(),
+                endTime: null,
+                totalArea: 0,
+                trackPoints: []
+            };
+            
+            // Start GPS tracking
+            watchId = navigator.geolocation.watchPosition(
+                recordGPSPoint,
+                handleGPSError,
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 5000
+                }
+            );
+            
+            updateCurrentStats();
+        }
+
+        function stopShredding() {
+            isShredding = false;
+            
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            
+            if (currentTrack.length > 0) {
+                currentSession.endTime = new Date();
+                saveCurrentTrack();
+                showSessionSummary();
+            }
+        }
+
+        function recordGPSPoint(position) {
+            if (!isShredding) return;
+            
+            const point = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                timestamp: new Date(),
+                accuracy: position.coords.accuracy
+            };
+            
+            currentTrack.push(point);
+            currentSession.trackPoints.push(point);
+            
+            updateMapDisplay();
+            updateCurrentStats();
+        }
+
+        function handleGPSError(error) {
+            console.log('GPS Error:', error);
+            alert('GPS error: ' + error.message);
+        }
+
+        function updateMapDisplay() {
+            if (currentTrack.length < 2) return;
+            
+            // Clear previous track
+            trackLayer.clearLayers();
+            coverageLayer.clearLayers();
+            
+            // Draw GPS track line
+            const trackLine = L.polyline(currentTrack.map(p => [p.lat, p.lng]), {
+                color: 'red',
+                weight: 3,
+                opacity: 0.8
+            }).addTo(trackLayer);
+            
+            // Calculate and draw coverage area
+            if (currentTrack.length >= 2) {
+                const coverage = calculateCoverage(currentTrack);
+                if (coverage.length > 0) {
+                    L.polygon(coverage, {
+                        color: 'green',
+                        fillColor: 'lightgreen',
+                        fillOpacity: 0.3,
+                        weight: 2
+                    }).addTo(coverageLayer);
+                }
+            }
+            
+            // Center map on latest point
+            if (currentTrack.length > 0) {
+                const latest = currentTrack[currentTrack.length - 1];
+                map.setView([latest.lat, latest.lng], map.getZoom());
+            }
+        }
+
+        function calculateCoverage(track) {
+            // Simplified coverage calculation - creates a buffer around the track
+            // In real implementation, this would be more sophisticated
+            return track.map(point => [point.lat, point.lng]);
+        }
+
+        function updateCurrentStats() {
+            if (!isShredding) return;
+            
+            const currentStats = document.getElementById('current-stats');
+            const elapsed = currentSession.startTime ? 
+                Math.round((new Date() - currentSession.startTime) / 1000 / 60) : 0;
+            
+            currentStats.innerHTML = `
+                Time: ${elapsed} minutes | 
+                Points: ${currentTrack.length} | 
+                Area: Calculating...
+            `;
+        }
+
+        function saveCurrentTrack() {
+            if (currentTrack.length === 0) return;
+            
+            const trackData = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                startTime: currentSession.startTime,
+                endTime: currentSession.endTime,
+                points: currentTrack,
+                shredderWidth: shredderWidth,
+                estimatedArea: calculateArea(currentTrack)
+            };
+            
+            shredTracks.push(trackData);
+            localStorage.setItem('shredTracks', JSON.stringify(shredTracks));
+        }
+
+        function calculateArea(track) {
+            // Simplified area calculation - would be more accurate in real implementation
+            return track.length * 0.1; // Rough estimate
+        }
+
+        function showSessionSummary() {
+            const summaryDiv = document.getElementById('track-summary');
+            const statsDiv = document.getElementById('session-stats');
+            
+            const duration = currentSession.endTime - currentSession.startTime;
+            const minutes = Math.round(duration / 1000 / 60);
+            const area = calculateArea(currentTrack);
+            
+            statsDiv.innerHTML = `
+                <strong>Session Complete!</strong><br>
+                Duration: ${minutes} minutes<br>
+                GPS Points: ${currentTrack.length}<br>
+                Estimated Area: ${area.toFixed(1)} acres<br>
+                Shredder Width: ${shredderWidth} feet
+            `;
+            
+            summaryDiv.classList.remove('hidden');
+        }
+
+        function loadHistoricalTracks() {
+            // Load and display previous shredding tracks
+            shredTracks.forEach(track => {
+                if (track.points && track.points.length > 1) {
+                    L.polyline(track.points.map(p => [p.lat, p.lng]), {
+                        color: 'blue',
+                        weight: 2,
+                        opacity: 0.5
+                    }).addTo(trackLayer);
+                }
+            });
+        }
+
+        function clearCurrentTrack() {
+            if (isShredding) {
+                if (!confirm('Stop current shredding session and clear track?')) return;
+                stopShredding();
+            }
+            
+            trackLayer.clearLayers();
+            coverageLayer.clearLayers();
+            currentTrack = [];
+            
+            document.getElementById('track-summary').classList.add('hidden');
+            loadHistoricalTracks();
+        }
+
+        function openMapSettings() {
+            const newWidth = prompt('Enter shredder width in feet:', shredderWidth);
+            if (newWidth && !isNaN(newWidth)) {
+                shredderWidth = parseFloat(newWidth);
+                localStorage.setItem('shredderWidth', shredderWidth);
+                alert(`Shredder width set to ${shredderWidth} feet`);
+            }
+        }
 </script>
 </body>
 </html>
