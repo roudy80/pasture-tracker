@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pasture Tracker</title>
-<!-- ADD THESE LINES -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<!-- REMOVED LEAFLET - Using custom image-based system -->
     <link rel="manifest" href="data:application/json,{%22name%22:%22Pasture%20Tracker%22,%22short_name%22:%22Pasture%22,%22start_url%22:%22/%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%23228B22%22,%22icons%22:[{%22src%22:%22data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20fill='%23228B22'%20width='100'%20height='100'/%3E%3Ctext%20y='70'%20font-size='60'%20text-anchor='middle'%20x='50'%20fill='white'%3EP%3C/text%3E%3C/svg%3E%22,%22sizes%22:%22any%22,%22type%22:%22image/svg+xml%22}]}">
     <style>
         * {
@@ -46,25 +44,29 @@
         }
         
         .tab-navigation {
-            display: flex;
-            background: white;
-            border-radius: 15px 15px 0 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 0;
-        }
+    display: flex;
+    background: white;
+    border-radius: 15px 15px 0 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
         
         .tab-button {
-            flex: 1;
-            padding: 1rem;
-            background: none;
-            border: none;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            color: #666;
-            transition: all 0.3s;
-            border-radius: 15px 15px 0 0;
-        }
+    flex: none;
+    min-width: 120px;
+    padding: 1rem;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.3s;
+    border-radius: 15px 15px 0 0;
+    white-space: nowrap;
+}
         
         .tab-button.active {
             background: #228B22;
@@ -913,6 +915,77 @@
             margin-bottom: 1rem;
             flex-wrap: wrap;
         }
+
+        .filter-materials {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* CUSTOM SHREDDING AREA STYLES */
+        .shredding-area {
+            position: absolute;
+            border: 3px solid;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            color: white;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .shredding-area:hover {
+            transform: scale(1.05);
+            border-width: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .shredding-area.edit-mode {
+            border-style: dashed;
+            border-width: 2px;
+        }
+
+        .shredding-area.selected {
+            border-color: #007bff !important;
+            border-width: 4px;
+            box-shadow: 0 0 15px rgba(0,123,255,0.5);
+        }
+
+        /* Color coding based on days since last shredded */
+        .shredding-area.recent {
+            background-color: rgba(40, 167, 69, 0.7);
+            border-color: #28a745;
+        }
+
+        .shredding-area.needs-attention {
+            background-color: rgba(255, 193, 7, 0.7);
+            border-color: #ffc107;
+        }
+
+        .shredding-area.overdue {
+            background-color: rgba(220, 53, 69, 0.7);
+            border-color: #dc3545;
+        }
+
+        .shredding-area.never-shredded {
+            background-color: rgba(108, 117, 125, 0.7);
+            border-color: #6c757d;
+        }
+
+        /* Shape variants */
+        .shredding-area.circle {
+            border-radius: 50%;
+        }
+
+        .shredding-area.rectangle {
+            border-radius: 8px;
+        }
         
     </style>
 </head>
@@ -1024,26 +1097,26 @@
         </div>
         
         <!-- Map Tab -->
-        <div id="mapTab" class="tab-content">
-            <div class="action-buttons">
-                <button class="btn btn-primary" id="startShredding" onclick="toggleShredding()">🟢 START SHREDDING</button>
-                <button class="btn btn-secondary" onclick="openMapSettings()">🔧 Settings</button>
-                <button class="btn btn-secondary" onclick="clearCurrentTrack()">🗑️ Clear Track</button>
-            </div>
-            
-            <div id="shredding-status" class="hidden" style="background: #d4edda; padding: 1rem; border-radius: 8px; margin: 1rem 0; text-align: center;">
-                <h3 style="color: #155724; margin: 0;">🔴 ACTIVELY SHREDDING</h3>
-                <div id="current-stats" style="margin-top: 0.5rem; font-size: 0.9rem; color: #155724;"></div>
-            </div>
-            
-            <div id="map" style="height: 400px; width: 100%; border-radius: 15px; margin: 1rem 0;"></div>
-            
-            <div id="track-summary" class="hidden" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
-                <h4>📊 Current Session</h4>
-                <div id="session-stats"></div>
-            </div>
-        </div>
+<div id="mapTab" class="tab-content">
+    <div class="action-buttons">
+        <button class="btn btn-primary" id="editAreasBtn" onclick="toggleEditMode()">✏️ EDIT AREAS</button>
+        <button class="btn btn-secondary" onclick="addNewArea()">➕ ADD AREA</button>
+        <button class="btn btn-secondary" onclick="viewShredHistory()">📊 VIEW HISTORY</button>
     </div>
+    
+    <div id="edit-mode-status" class="hidden" style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin: 1rem 0; text-align: center;">
+        <h3 style="color: #856404; margin: 0;">✏️ EDIT MODE - Click areas to modify</h3>
+    </div>
+    
+    <div id="ranch-map-container" style="width: 100%; height: 400px; position: relative; border-radius: 15px; overflow: hidden; background: #f0f0f0; background-image: url('landphoto.png'); background-size: cover; background-position: center;">
+        <div id="shredding-areas"></div>
+    </div>
+    
+    <div id="area-summary" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+        <h4>🌾 Shredding Areas</h4>
+        <div id="area-stats">No areas defined yet</div>
+    </div>
+</div>
     
     <!-- Projects Tab -->
     <div id="projectsTab" class="tab-content">
@@ -1320,6 +1393,72 @@
         </div>
     </div>
 
+<!-- Shredding Area Modal -->
+<div id="areaModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3 id="areaModalTitle">Create New Shredding Area</h3>
+        
+        <div class="form-group">
+            <label for="areaName">Area Name:</label>
+            <input type="text" id="areaName" placeholder="e.g., Back 40, Creek Bottom, Front Pasture">
+        </div>
+        
+        <div class="form-group">
+            <label for="areaShape">Shape Type:</label>
+            <select id="areaShape">
+                <option value="rectangle">📐 Rectangle</option>
+                <option value="circle">⭕ Circle</option>
+                <option value="polygon">📍 Custom Shape (Click Points)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="areaSize">Approximate Size:</label>
+            <select id="areaSize">
+                <option value="small">Small (2-5 acres)</option>
+                <option value="medium">Medium (5-15 acres)</option>
+                <option value="large">Large (15+ acres)</option>
+            </select>
+        </div>
+        
+        <div id="instructionText" style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin: 1rem 0; font-size: 0.9rem;">
+            After creating, click anywhere on the map to position this area.
+        </div>
+        
+        <input type="hidden" id="areaEditId">
+        <button class="btn btn-primary" onclick="createArea()">Create Area</button>
+        <button class="btn btn-secondary" id="deleteAreaBtn" onclick="confirmDeleteArea()" style="display: none;">Delete Area</button>
+    </div>
+</div>
+
+<!-- Shredding Confirmation Modal -->
+<div id="shreddingModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3>🌾 Mark Area as Shredded</h3>
+        
+        <div style="text-align: center; margin: 1rem 0;">
+            <div style="font-size: 1.2rem; font-weight: bold; color: #228B22;" id="shreddingAreaName"></div>
+            <div style="color: #666; margin-top: 0.5rem;" id="shreddingAreaStatus"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="shreddingDate">Date Shredded:</label>
+            <input type="date" id="shreddingDate">
+        </div>
+        
+        <div class="form-group">
+            <label for="shreddingNotes">Notes (optional):</label>
+            <textarea id="shreddingNotes" rows="2" placeholder="e.g., Cut to 6 inches, conditions were perfect"></textarea>
+        </div>
+        
+        <input type="hidden" id="shreddingAreaId">
+        <button class="btn btn-primary" onclick="confirmShredding()">✅ Mark as Shredded</button>
+        <button class="btn btn-secondary" onclick="viewAreaHistory()">📅 View History</button>
+    </div>
+</div>
+        
     <!-- Full Screen Photo Modal -->
     <div id="photoViewModal" class="photo-modal">
         <span class="photo-modal-close" onclick="closePhotoView()">&times;</span>
@@ -1343,35 +1482,27 @@ let burnBanStatus = JSON.parse(localStorage.getItem('burnBanStatus') || '{"fayet
 let treatments = JSON.parse(localStorage.getItem('treatments') || '[]');
 let currentAnimalFilter = 'all';
 
-// MAP VARIABLES - ADD THESE LINES
-let map = null;
-let isShredding = false;
-let currentTrack = [];
-let trackLayer = null;
-let coverageLayer = null;
-let shredderWidth = 5; // feet
-let watchId = null;
-let shredTracks = JSON.parse(localStorage.getItem('shredTracks') || '[]');
-let currentSession = {
-    startTime: null,
-    endTime: null,
-    totalArea: 0,
-    trackPoints: []
-};
+// CUSTOM SHREDDING AREA VARIABLES
+let shreddingAreas = JSON.parse(localStorage.getItem('shreddingAreas') || '[]');
+let isEditMode = false;
+let selectedArea = null;
      
         // Initialize app when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            initializeBurnBanControls();
-            displayPastures();
-            displayAnimals();
-            displayProjects();
-            requestNotificationPermission();                     loadWeather();
-            initializeOfflineMode();
-            
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('data:text/javascript,console.log("SW registered")');
-            }
-        });
+    initializeBurnBanControls();
+    displayPastures();
+    displayAnimals();
+    displayProjects();
+    requestNotificationPermission();
+    loadWeather();
+    initializeOfflineMode();
+    
+    initializeCustomShredMap();
+    
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('data:text/javascript,console.log("SW registered")');
+    }
+});
         
         // Burn ban functions
         function initializeBurnBanControls() {
@@ -1915,6 +2046,8 @@ let currentSession = {
     document.getElementById('projectModal').style.display = 'none';
     document.getElementById('materialsModal').style.display = 'none';
     document.getElementById('obtainedModal').style.display = 'none';
+    document.getElementById('areaModal').style.display = 'none';
+    document.getElementById('shreddingModal').style.display = 'none';
     clearModalInputs();
 }
         
@@ -3682,239 +3815,438 @@ function deleteMaterial(materialId) {
         alert('Material deleted successfully!');
     }
 } 
-// MAP FUNCTIONS - ADD ALL OF THESE AT THE END OF YOUR JAVASCRIPT
 
-        function initializeMap() {
-            // Initialize map centered on your ranch (LaGrange area)
-            map = L.map('map').setView([29.791611, -96.947750], 16);
-            
-            // Add satellite imagery
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-                attribution: 'Tiles &copy; Esri',
-                maxZoom: 18
-            }).addTo(map);
-            
-            // Initialize track layer
-            trackLayer = L.layerGroup().addTo(map);
-            coverageLayer = L.layerGroup().addTo(map);
-            
-            // Load existing tracks
-            loadHistoricalTracks();
+// CUSTOM SHREDDING AREA SYSTEM
+function initializeCustomShredMap() {
+    displayShreddingAreas();
+    updateAreaStats();
+}
+
+function toggleEditMode() {
+    isEditMode = !isEditMode;
+    const button = document.getElementById('editAreasBtn');
+    const statusDiv = document.getElementById('edit-mode-status');
+    
+    if (isEditMode) {
+        button.innerHTML = '✅ DONE EDITING';
+        button.className = 'btn btn-secondary';
+        statusDiv.classList.remove('hidden');
+        document.querySelectorAll('.shredding-area').forEach(area => {
+            area.classList.add('edit-mode');
+        });
+    } else {
+        button.innerHTML = '✏️ EDIT AREAS';
+        button.className = 'btn btn-primary';
+        statusDiv.classList.add('hidden');
+        document.querySelectorAll('.shredding-area').forEach(area => {
+            area.classList.remove('edit-mode', 'selected');
+        });
+        selectedArea = null;
+    }
+}
+
+function addNewArea() {
+    document.getElementById('areaModalTitle').textContent = 'Create New Shredding Area';
+    document.getElementById('areaName').value = '';
+    document.getElementById('areaShape').value = 'rectangle';
+    document.getElementById('areaSize').value = 'medium';
+    document.getElementById('areaEditId').value = '';
+    document.getElementById('deleteAreaBtn').style.display = 'none';
+    document.getElementById('areaModal').style.display = 'block';
+}
+
+function createArea() {
+    const name = document.getElementById('areaName').value.trim();
+    const shape = document.getElementById('areaShape').value;
+    const size = document.getElementById('areaSize').value;
+    const editId = document.getElementById('areaEditId').value;
+    
+    if (!name) {
+        alert('Please enter an area name');
+        return;
+    }
+    
+    // Size mappings
+    const sizeMap = {
+        small: { width: 15, height: 10 },
+        medium: { width: 25, height: 18 },
+        large: { width: 35, height: 25 }
+    };
+    
+    if (editId) {
+        // Edit existing area
+        const area = shreddingAreas.find(a => a.id == editId);
+        if (area) {
+            area.name = name;
+            area.shape = shape;
+            const newSize = sizeMap[size];
+            area.position.width = newSize.width;
+            area.position.height = newSize.height;
         }
+        alert(`${name} updated!`);
+    } else {
+        // Create new area
+        const newArea = {
+            id: Date.now(),
+            name: name,
+            shape: shape,
+            position: {
+                x: 50, // percentage from left
+                y: 50, // percentage from top
+                width: sizeMap[size].width,
+                height: sizeMap[size].height
+            },
+            polygonPoints: shape === 'polygon' ? [] : null,
+            lastShredded: null,
+            history: [],
+            notes: []
+        };
+        
+        shreddingAreas.push(newArea);
+        alert(`${name} created! Click anywhere on the map to position it.`);
+    }
+    
+    saveShreddingAreas();
+    displayShreddingAreas();
+    updateAreaStats();
+    closeModal();
+    
+    // Enable positioning mode if new area
+    if (!editId) {
+        enablePositioningMode();
+    }
+}
 
-        function toggleShredding() {
-            const button = document.getElementById('startShredding');
-            const statusDiv = document.getElementById('shredding-status');
+function displayShreddingAreas() {
+    const container = document.getElementById('shredding-areas');
+    container.innerHTML = '';
+    
+    shreddingAreas.forEach(area => {
+        const areaDiv = document.createElement('div');
+        areaDiv.className = `shredding-area ${area.shape} ${getAreaColorClass(area)}`;
+        areaDiv.style.left = area.position.x + '%';
+        areaDiv.style.top = area.position.y + '%';
+        areaDiv.style.width = area.position.width + '%';
+        areaDiv.style.height = area.position.height + '%';
+        areaDiv.textContent = area.name;
+        areaDiv.title = getAreaTooltip(area);
+        
+        areaDiv.onclick = () => handleAreaClick(area);
+        container.appendChild(areaDiv);
+    });
+}
+
+function getAreaColorClass(area) {
+    if (!area.lastShredded) return 'never-shredded';
+    
+    const daysSince = (Date.now() - new Date(area.lastShredded)) / (1000 * 60 * 60 * 24);
+    
+    if (daysSince <= 30) return 'recent';
+    if (daysSince <= 60) return 'needs-attention';
+    return 'overdue';
+}
+
+function getAreaTooltip(area) {
+    if (!area.lastShredded) return `${area.name} - Never shredded`;
+    
+    const daysSince = Math.floor((Date.now() - new Date(area.lastShredded)) / (1000 * 60 * 60 * 24));
+    const lastDate = new Date(area.lastShredded).toLocaleDateString();
+    
+    return `${area.name}\nLast shredded: ${lastDate}\n(${daysSince} days ago)`;
+}
+
+function handleAreaClick(area) {
+    if (isEditMode) {
+        editArea(area);
+    } else {
+        markAreaShredded(area);
+    }
+}
+
+function markAreaShredded(area) {
+    document.getElementById('shreddingAreaName').textContent = area.name;
+    document.getElementById('shreddingAreaId').value = area.id;
+    
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('shreddingDate').value = today;
+    document.getElementById('shreddingNotes').value = '';
+    
+    // Show current status
+    const statusDiv = document.getElementById('shreddingAreaStatus');
+    if (area.lastShredded) {
+        const daysSince = Math.floor((Date.now() - new Date(area.lastShredded)) / (1000 * 60 * 60 * 24));
+        const lastDate = new Date(area.lastShredded).toLocaleDateString();
+        statusDiv.textContent = `Last shredded: ${lastDate} (${daysSince} days ago)`;
+    } else {
+        statusDiv.textContent = 'Never been shredded';
+    }
+    
+    document.getElementById('shreddingModal').style.display = 'block';
+}
+
+function confirmShredding() {
+    const areaId = document.getElementById('shreddingAreaId').value;
+    const shreddingDate = document.getElementById('shreddingDate').value;
+    const notes = document.getElementById('shreddingNotes').value.trim();
+    
+    if (!shreddingDate) {
+        alert('Please select a date');
+        return;
+    }
+    
+    const area = shreddingAreas.find(a => a.id == areaId);
+    if (!area) return;
+    
+    area.lastShredded = shreddingDate;
+    area.history.unshift(shreddingDate);
+    
+    if (notes) {
+        area.notes.unshift({
+            date: shreddingDate,
+            note: notes
+        });
+    }
+    
+    // Keep only last 10 entries
+    if (area.history.length > 10) area.history = area.history.slice(0, 10);
+    if (area.notes.length > 10) area.notes = area.notes.slice(0, 10);
+    
+    saveShreddingAreas();
+    displayShreddingAreas();
+    updateAreaStats();
+    closeModal();
+    
+    alert(`${area.name} marked as shredded on ${new Date(shreddingDate).toLocaleDateString()}!`);
+}
+
+function viewAreaHistory() {
+    const areaId = document.getElementById('shreddingAreaId').value;
+    const area = shreddingAreas.find(a => a.id == areaId);
+    if (!area) return;
+    
+    let history = `📅 ${area.name.toUpperCase()} HISTORY\n\n`;
+    
+    if (area.history.length === 0) {
+        history += 'No shredding history yet.';
+    } else {
+        history += 'SHREDDING DATES:\n';
+        area.history.forEach((date, index) => {
+            const daysSince = Math.floor((Date.now() - new Date(date)) / (1000 * 60 * 60 * 24));
+            history += `${index + 1}. ${new Date(date).toLocaleDateString()} (${daysSince} days ago)\n`;
             
-            if (!isShredding) {
-                startShredding();
-                button.innerHTML = '🔴 STOP SHREDDING';
-                button.className = 'btn btn-delete';
-                statusDiv.classList.remove('hidden');
-            } else {
-                stopShredding();
-                button.innerHTML = '🟢 START SHREDDING';
-                button.className = 'btn btn-primary';
-                statusDiv.classList.add('hidden');
+            // Add notes if any
+            const note = area.notes.find(n => n.date === date);
+            if (note) {
+                history += `   📝 ${note.note}\n`;
             }
-        }
+        });
+    }
+    
+    alert(history);
+}
 
-        function startShredding() {
-            if (!navigator.geolocation) {
-                alert('GPS not available on this device');
-                return;
+function editArea(area) {
+    selectedArea = area;
+    
+    // Visual selection
+    document.querySelectorAll('.shredding-area').forEach(el => el.classList.remove('selected'));
+    event.target.classList.add('selected');
+    
+    const action = confirm(`Edit "${area.name}"?\nOK = Edit Properties\nCancel = Delete Area`);
+    
+    if (action) {
+        editAreaProperties(area);
+    } else {
+        deleteArea(area);
+    }
+}
+
+function editAreaProperties(area) {
+    const newName = prompt('Area name:', area.name);
+    if (newName === null) return;
+    
+    if (newName.trim()) {
+        area.name = newName.trim();
+        saveShreddingAreas();
+        displayShreddingAreas();
+        updateAreaStats();
+    }
+}
+
+function deleteArea(area) {
+    if (confirm(`Delete "${area.name}" permanently?`)) {
+        shreddingAreas = shreddingAreas.filter(a => a.id !== area.id);
+        saveShreddingAreas();
+        displayShreddingAreas();
+        updateAreaStats();
+        selectedArea = null;
+    }
+}
+
+function viewShredHistory() {
+    let report = '🌾 SHREDDING HISTORY REPORT\n\n';
+    
+    if (shreddingAreas.length === 0) {
+        alert('No shredding areas defined yet!');
+        return;
+    }
+    
+    // Sort by priority (overdue first)
+    const sortedAreas = [...shreddingAreas].sort((a, b) => {
+        const aDays = a.lastShredded ? (Date.now() - new Date(a.lastShredded)) / (1000 * 60 * 60 * 24) : 999;
+        const bDays = b.lastShredded ? (Date.now() - new Date(b.lastShredded)) / (1000 * 60 * 60 * 24) : 999;
+        return bDays - aDays;
+    });
+    
+    sortedAreas.forEach(area => {
+        const status = getAreaColorClass(area);
+        const icon = status === 'overdue' ? '🔴' : 
+                    status === 'needs-attention' ? '🟡' : 
+                    status === 'recent' ? '🟢' : '⚫';
+        
+        report += `${icon} ${area.name.toUpperCase()}\n`;
+        
+        if (area.lastShredded) {
+            const daysSince = Math.floor((Date.now() - new Date(area.lastShredded)) / (1000 * 60 * 60 * 24));
+            report += `Last shredded: ${new Date(area.lastShredded).toLocaleDateString()} (${daysSince} days ago)\n`;
+            
+            if (area.history.length > 1) {
+                report += `Previous: ${area.history.slice(1, 4).map(date => new Date(date).toLocaleDateString()).join(', ')}\n`;
             }
-            
-            isShredding = true;
-            currentTrack = [];
-            currentSession = {
-                startTime: new Date(),
-                endTime: null,
-                totalArea: 0,
-                trackPoints: []
-            };
-            
-            // Start GPS tracking
-            watchId = navigator.geolocation.watchPosition(
-                recordGPSPoint,
-                handleGPSError,
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 5000
-                }
-            );
-            
-            updateCurrentStats();
+        } else {
+            report += 'Never shredded\n';
         }
+        report += '\n';
+    });
+    
+    const totalAreas = shreddingAreas.length;
+    const recentCount = shreddingAreas.filter(a => getAreaColorClass(a) === 'recent').length;
+    const overdueCount = shreddingAreas.filter(a => getAreaColorClass(a) === 'overdue').length;
+    
+    report += `SUMMARY: ${totalAreas} areas • ${recentCount} recent • ${overdueCount} overdue`;
+    
+    alert(report);
+}
 
-        function stopShredding() {
-            isShredding = false;
-            
-            if (watchId) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
-            }
-            
-            if (currentTrack.length > 0) {
-                currentSession.endTime = new Date();
-                saveCurrentTrack();
-                showSessionSummary();
-            }
-        }
+function updateAreaStats() {
+    const statsDiv = document.getElementById('area-stats');
+    
+    if (shreddingAreas.length === 0) {
+        statsDiv.innerHTML = 'No areas defined yet';
+        return;
+    }
+    
+    const recent = shreddingAreas.filter(a => getAreaColorClass(a) === 'recent').length;
+    const needsAttention = shreddingAreas.filter(a => getAreaColorClass(a) === 'needs-attention').length;
+    const overdue = shreddingAreas.filter(a => getAreaColorClass(a) === 'overdue').length;
+    const never = shreddingAreas.filter(a => getAreaColorClass(a) === 'never-shredded').length;
+    
+    statsDiv.innerHTML = `
+        ${shreddingAreas.length} areas defined • 
+        <span style="color: #28a745;">●</span> ${recent} recent • 
+        <span style="color: #ffc107;">●</span> ${needsAttention} need attention • 
+        <span style="color: #dc3545;">●</span> ${overdue} overdue • 
+        <span style="color: #6c757d;">●</span> ${never} never shredded
+    `;
+}
 
-        function recordGPSPoint(position) {
-            if (!isShredding) return;
-            
-            const point = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-                timestamp: new Date(),
-                accuracy: position.coords.accuracy
-            };
-            
-            currentTrack.push(point);
-            currentSession.trackPoints.push(point);
-            
-            updateMapDisplay();
-            updateCurrentStats();
-        }
+let positioningMode = false;
+let tempArea = null;
 
-        function handleGPSError(error) {
-            console.log('GPS Error:', error);
-            alert('GPS error: ' + error.message);
-        }
+function enablePositioningMode() {
+    positioningMode = true;
+    tempArea = shreddingAreas[shreddingAreas.length - 1]; // Get the newest area
+    
+    const mapContainer = document.getElementById('ranch-map-container');
+    mapContainer.style.cursor = 'crosshair';
+    mapContainer.onclick = positionArea;
+    
+    // Show instruction
+    const instruction = document.createElement('div');
+    instruction.id = 'positioning-instruction';
+    instruction.style.cssText = `
+        position: absolute; top: 10px; left: 10px; right: 10px;
+        background: rgba(0,123,255,0.9); color: white; padding: 0.5rem;
+        border-radius: 8px; text-align: center; z-index: 1000;
+        font-weight: bold;
+    `;
+    instruction.textContent = `Click anywhere on the map to position "${tempArea.name}"`;
+    mapContainer.appendChild(instruction);
+}
 
-        function updateMapDisplay() {
-            if (currentTrack.length < 2) return;
-            
-            // Clear previous track
-            trackLayer.clearLayers();
-            coverageLayer.clearLayers();
-            
-            // Draw GPS track line
-            const trackLine = L.polyline(currentTrack.map(p => [p.lat, p.lng]), {
-                color: 'red',
-                weight: 3,
-                opacity: 0.8
-            }).addTo(trackLayer);
-            
-            // Calculate and draw coverage area
-            if (currentTrack.length >= 2) {
-                const coverage = calculateCoverage(currentTrack);
-                if (coverage.length > 0) {
-                    L.polygon(coverage, {
-                        color: 'green',
-                        fillColor: 'lightgreen',
-                        fillOpacity: 0.3,
-                        weight: 2
-                    }).addTo(coverageLayer);
-                }
-            }
-            
-            // Center map on latest point
-            if (currentTrack.length > 0) {
-                const latest = currentTrack[currentTrack.length - 1];
-                map.setView([latest.lat, latest.lng], map.getZoom());
-            }
-        }
+function positionArea(event) {
+    if (!positioningMode || !tempArea) return;
+    
+    const mapContainer = document.getElementById('ranch-map-container');
+    const rect = mapContainer.getBoundingClientRect();
+    
+    // Calculate click position as percentage
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    
+    // Update area position (center it on click point)
+    tempArea.position.x = Math.max(0, Math.min(100 - tempArea.position.width, x - tempArea.position.width/2));
+    tempArea.position.y = Math.max(0, Math.min(100 - tempArea.position.height, y - tempArea.position.height/2));
+    
+    // Disable positioning mode
+    positioningMode = false;
+    tempArea = null;
+    mapContainer.style.cursor = 'default';
+    mapContainer.onclick = null;
+    
+    // Remove instruction
+    const instruction = document.getElementById('positioning-instruction');
+    if (instruction) instruction.remove();
+    
+    // Save and refresh
+    saveShreddingAreas();
+    displayShreddingAreas();
+    
+    alert('Area positioned! You can move it again by entering Edit Mode.');
+}
 
-        function calculateCoverage(track) {
-            // Simplified coverage calculation - creates a buffer around the track
-            // In real implementation, this would be more sophisticated
-            return track.map(point => [point.lat, point.lng]);
-        }
+function editArea(area) {
+    selectedArea = area;
+    
+    // Visual selection
+    document.querySelectorAll('.shredding-area').forEach(el => el.classList.remove('selected'));
+    event.target.classList.add('selected');
+    
+    const action = prompt(`"${area.name}" options:\n1 = Edit Properties\n2 = Move Position\n3 = Delete\n\nEnter 1, 2, or 3:`);
+    
+    if (action === '1') {
+        editAreaProperties(area);
+    } else if (action === '2') {
+        moveArea(area);
+    } else if (action === '3') {
+        deleteArea(area);
+    }
+}
 
-        function updateCurrentStats() {
-            if (!isShredding) return;
-            
-            const currentStats = document.getElementById('current-stats');
-            const elapsed = currentSession.startTime ? 
-                Math.round((new Date() - currentSession.startTime) / 1000 / 60) : 0;
-            
-            currentStats.innerHTML = `
-                Time: ${elapsed} minutes | 
-                Points: ${currentTrack.length} | 
-                Area: Calculating...
-            `;
-        }
+function moveArea(area) {
+    tempArea = area;
+    enablePositioningMode();
+}
 
-        function saveCurrentTrack() {
-            if (currentTrack.length === 0) return;
-            
-            const trackData = {
-                id: Date.now(),
-                date: new Date().toISOString(),
-                startTime: currentSession.startTime,
-                endTime: currentSession.endTime,
-                points: currentTrack,
-                shredderWidth: shredderWidth,
-                estimatedArea: calculateArea(currentTrack)
-            };
-            
-            shredTracks.push(trackData);
-            localStorage.setItem('shredTracks', JSON.stringify(shredTracks));
-        }
+function confirmDeleteArea() {
+    const editId = document.getElementById('areaEditId').value;
+    const area = shreddingAreas.find(a => a.id == editId);
+    if (!area) return;
+    
+    if (confirm(`Delete "${area.name}" permanently?\n\nThis will remove all shredding history for this area.`)) {
+        shreddingAreas = shreddingAreas.filter(a => a.id != editId);
+        saveShreddingAreas();
+        displayShreddingAreas();
+        updateAreaStats();
+        closeModal();
+        alert('Area deleted successfully!');
+    }
+}
 
-        function calculateArea(track) {
-            // Simplified area calculation - would be more accurate in real implementation
-            return track.length * 0.1; // Rough estimate
-        }
-
-        function showSessionSummary() {
-            const summaryDiv = document.getElementById('track-summary');
-            const statsDiv = document.getElementById('session-stats');
-            
-            const duration = currentSession.endTime - currentSession.startTime;
-            const minutes = Math.round(duration / 1000 / 60);
-            const area = calculateArea(currentTrack);
-            
-            statsDiv.innerHTML = `
-                <strong>Session Complete!</strong><br>
-                Duration: ${minutes} minutes<br>
-                GPS Points: ${currentTrack.length}<br>
-                Estimated Area: ${area.toFixed(1)} acres<br>
-                Shredder Width: ${shredderWidth} feet
-            `;
-            
-            summaryDiv.classList.remove('hidden');
-        }
-
-        function loadHistoricalTracks() {
-            // Load and display previous shredding tracks
-            shredTracks.forEach(track => {
-                if (track.points && track.points.length > 1) {
-                    L.polyline(track.points.map(p => [p.lat, p.lng]), {
-                        color: 'blue',
-                        weight: 2,
-                        opacity: 0.5
-                    }).addTo(trackLayer);
-                }
-            });
-        }
-
-        function clearCurrentTrack() {
-            if (isShredding) {
-                if (!confirm('Stop current shredding session and clear track?')) return;
-                stopShredding();
-            }
-            
-            trackLayer.clearLayers();
-            coverageLayer.clearLayers();
-            currentTrack = [];
-            
-            document.getElementById('track-summary').classList.add('hidden');
-            loadHistoricalTracks();
-        }
-
-        function openMapSettings() {
-            const newWidth = prompt('Enter shredder width in feet:', shredderWidth);
-            if (newWidth && !isNaN(newWidth)) {
-                shredderWidth = parseFloat(newWidth);
-                localStorage.setItem('shredderWidth', shredderWidth);
-                alert(`Shredder width set to ${shredderWidth} feet`);
-            }
-        }
+function saveShreddingAreas() {
+    localStorage.setItem('shreddingAreas', JSON.stringify(shreddingAreas));
+}
+        
 </script>
 </body>
 </html>
