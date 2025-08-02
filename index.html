@@ -988,43 +988,22 @@
         }
 
         /* Cannabis Leaf Icon */
-        .cannabis-leaf {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            position: relative;
-            margin-right: 4px;
-            vertical-align: middle;
-        }
+        .weed-leaf {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    position: relative;
+    margin-right: 4px;
+    vertical-align: middle;
+}
 
-        .cannabis-leaf::before {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 12px;
-            background: currentColor;
-            border-radius: 8px 8px 0 0;
-            transform: rotate(-20deg);
-            top: 2px;
-            left: 0;
-        }
-
-        .cannabis-leaf::after {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 12px;
-            background: currentColor;
-            border-radius: 8px 8px 0 0;
-            transform: rotate(20deg);
-            top: 2px;
-            left: 0;
-        }
-
-        .cannabis-leaf {
-            background: currentColor;
-            border-radius: 2px 2px 8px 8px;
-        }
+.weed-leaf::before {
+    content: '🍃';
+    font-size: 14px;
+    position: absolute;
+    top: 1px;
+    left: 1px;
+}
 
         .species-card {
             background: white;
@@ -1384,7 +1363,7 @@
     <button class="tab-button active" onclick="switchTab('weather')">🌤️ Weather</button>
     <button class="tab-button" onclick="switchTab('pasture')">🌾 Pasture</button>
     <button class="tab-button" onclick="switchTab('animals')">🐄 Animals</button>
-    <button class="tab-button" onclick="switchTab('weed')"><span class="cannabis-leaf"></span> Weed</button>
+    <button class="tab-button" onclick="switchTab('weed')"><span class="weed-leaf"></span> Weed</button>
     <button class="tab-button" onclick="switchTab('map')">🗺️ Map</button>
     <button class="tab-button" onclick="switchTab('projects')">🔧 Projects</button>
 </div>
