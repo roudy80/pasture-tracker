@@ -986,6 +986,391 @@
         .shredding-area.rectangle {
             border-radius: 8px;
         }
+
+        /* Cannabis Leaf Icon */
+        .cannabis-leaf {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            position: relative;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .cannabis-leaf::before {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 12px;
+            background: currentColor;
+            border-radius: 8px 8px 0 0;
+            transform: rotate(-20deg);
+            top: 2px;
+            left: 0;
+        }
+
+        .cannabis-leaf::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 12px;
+            background: currentColor;
+            border-radius: 8px 8px 0 0;
+            transform: rotate(20deg);
+            top: 2px;
+            left: 0;
+        }
+
+        .cannabis-leaf {
+            background: currentColor;
+            border-radius: 2px 2px 8px 8px;
+        }
+
+        .species-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #6c757d;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .species-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        .species-card.active-season {
+            border-left-color: #dc3545;
+            background: #fff8f8;
+        }
+        
+        .species-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .species-header h3 {
+            margin: 0;
+            color: #228B22;
+        }
+        
+        .species-type {
+            background: #e9ecef;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #495057;
+        }
+        
+        .species-scientific {
+            font-style: italic;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+        
+        .species-description {
+            color: #333;
+            margin-bottom: 0.75rem;
+        }
+        
+        .species-current-action {
+            background: #e3f2fd;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .species-identifiers {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .detail-section {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .detail-section h3 {
+            margin: 0 0 0.75rem 0;
+            color: #495057;
+        }
+        
+        .detail-section ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        
+        .detail-section li {
+            margin-bottom: 0.25rem;
+        }
+
+        /* Spray Calculator Styles */
+        .calc-inputs {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .calc-inputs .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .calc-inputs label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+        
+        .calc-inputs select,
+        .calc-inputs input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .calc-inputs select:focus,
+        .calc-inputs input[type="number"]:focus {
+            outline: none;
+            border-color: #228B22;
+            box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
+        }
+        
+        .calc-inputs input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 0.5rem;
+            accent-color: #228B22;
+        }
+        
+        .calc-inputs small {
+            font-size: 0.85rem;
+            line-height: 1.3;
+        }
+        
+        .calc-results {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+        
+        .calc-results h4 {
+            color: #228B22;
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .calc-results h5 {
+            color: #495057;
+            margin: 1.5rem 0 0.75rem 0;
+            font-size: 1.1rem;
+        }
+        
+        .calc-summary {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .calc-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .calc-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .calc-label {
+            font-weight: 600;
+            color: #1976d2;
+        }
+        
+        .calc-value {
+            font-weight: 700;
+            color: #0d47a1;
+        }
+        
+        .per-tank-mix {
+            background: #fff3cd;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .mix-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #ffeaa7;
+        }
+        
+        .mix-item:last-child {
+            border-bottom: none;
+        }
+        
+        .mix-chemical {
+            font-weight: 600;
+            color: #856404;
+        }
+        
+        .mix-amount {
+            font-weight: 700;
+            color: #533f03;
+            background: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .cost-breakdown {
+            background: #d4edda;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #c3e6cb;
+        }
+        
+        .cost-item:last-child {
+            border-bottom: none;
+        }
+        
+        .cost-item.total-cost {
+            margin-top: 0.5rem;
+            padding-top: 0.75rem;
+            border-top: 2px solid #28a745;
+            font-size: 1.1rem;
+        }
+        
+        .cost-item span:first-child {
+            color: #155724;
+        }
+        
+        .cost-item span:last-child {
+            color: #0a4622;
+            background: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .calc-notes {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #6c757d;
+            margin-top: 1.5rem;
+        }
+        
+        .calc-notes h5 {
+            color: #495057;
+            margin: 0 0 0.75rem 0;
+        }
+        
+        .calc-notes p {
+            margin: 0.5rem 0;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+        
+        .calc-notes p:first-of-type {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        /* Make calculator modal wider on larger screens */
+        @media (min-width: 768px) {
+            #calculatorModal .modal-content {
+                max-width: 700px;
+            }
+        }
+        
+        /* Responsive calculator on mobile */
+        @media (max-width: 767px) {
+            .calc-inputs {
+                padding: 1rem;
+            }
+            
+            .calc-results {
+                padding: 1rem;
+            }
+            
+            .mix-item,
+            .cost-item,
+            .calc-item {
+                font-size: 0.9rem;
+            }
+            
+            .calc-results h4 {
+                font-size: 1.2rem;
+            }
+        }
+
+/* Responsive calculator on mobile */
+        @media (max-width: 767px) {
+            .calc-inputs {
+                padding: 1rem;
+            }
+            
+            .calc-results {
+                padding: 1rem;
+            }
+            
+            .mix-item,
+            .cost-item,
+            .calc-item {
+                font-size: 0.9rem;
+            }
+            
+            .calc-results h4 {
+                font-size: 1.2rem;
+            }
+        }   <-- ADD THE NEW CSS RIGHT AFTER THIS BRACKET
+        
+        .tank-breakdown {
+            margin: 1rem 0;
+        }
+        
+        .tank-mix {
+            background: #fff8dc;
+            border: 2px solid #daa520;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .tank-mix h6 {
+            margin: 0 0 0.75rem 0;
+            color: #b8860b;
+            font-weight: bold;
+            text-align: center;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
         
     </style>
 </head>
@@ -995,11 +1380,11 @@
         <div class="location">LaGrange - Schulenburg, TX</div>
     </div>
 
-    <div class="container">
-        <div class="tab-navigation">
+    <div class="tab-navigation">
     <button class="tab-button active" onclick="switchTab('weather')">🌤️ Weather</button>
     <button class="tab-button" onclick="switchTab('pasture')">🌾 Pasture</button>
     <button class="tab-button" onclick="switchTab('animals')">🐄 Animals</button>
+    <button class="tab-button" onclick="switchTab('weed')"><span class="cannabis-leaf"></span> Weed</button>
     <button class="tab-button" onclick="switchTab('map')">🗺️ Map</button>
     <button class="tab-button" onclick="switchTab('projects')">🔧 Projects</button>
 </div>
@@ -1108,7 +1493,7 @@
         <h3 style="color: #856404; margin: 0;">✏️ EDIT MODE - Click areas to modify</h3>
     </div>
     
-    <div id="ranch-map-container" style="width: 100%; height: 400px; position: relative; border-radius: 15px; overflow: hidden; background: #f0f0f0; background-image: url('landphoto.png'); background-size: cover; background-position: center;">
+    <div id="ranch-map-container" style="width: 100%; height: 400px; position: relative; border-radius: 15px; overflow: hidden; background: linear-gradient(45deg, #228B22 25%, transparent 25%), linear-gradient(-45deg, #228B22 25%, transparent 25%); background-size: 20px 20px; background-color: #90EE90;">
         <div id="shredding-areas"></div>
     </div>
     
@@ -1117,6 +1502,36 @@
         <div id="area-stats">No areas defined yet</div>
     </div>
 </div>
+
+<!-- Weed Tab -->
+    <div id="weedTab" class="tab-content">
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="viewCurrentAlerts()">🚨 Current Alerts</button>
+            <button class="btn btn-secondary" onclick="viewSpeciesGuide()">📚 Species Guide</button>
+            <button class="btn btn-secondary" onclick="viewCalendar()">📅 Calendar</button>
+            <button class="btn btn-secondary" onclick="sprayCalculator()">🧪 Calculator</button>
+        </div>
+        
+        <div id="weedContent">
+            <div class="weather-card">
+                <h3>🌿 Central Texas Weed Management</h3>
+                <p style="color: #666; margin: 1rem 0;">
+                    Comprehensive weed identification, timing, and control strategies for your ranch.
+                </p>
+                
+                <div id="currentAlerts" style="background: #fff3cd; padding: 1rem; border-radius: 10px; margin: 1rem 0;">
+                    <h4 style="color: #856404; margin: 0 0 0.5rem 0;">📅 This Month's Priorities</h4>
+                    <div id="monthlyAlerts">Loading current recommendations...</div>
+                </div>
+                
+                <div id="sprayConditions" style="background: #e3f2fd; padding: 1rem; border-radius: 10px; margin: 1rem 0;">
+                    <h4 style="color: #1976d2; margin: 0 0 0.5rem 0;">🌤️ Spray Conditions</h4>
+                    <div id="conditionsContent">Checking weather conditions...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     
     <!-- Projects Tab -->
     <div id="projectsTab" class="tab-content">
@@ -1378,6 +1793,87 @@
         </div>
         <input type="hidden" id="obtainedMaterialId">
         <button class="btn btn-primary" onclick="markMaterialObtained()">Mark as Obtained</button>
+    </div>
+</div>
+
+
+<!-- Spray Calculator Modal -->
+<div id="calculatorModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3>🧪 Spray Mix Calculator</h3>
+        
+        <div class="calc-inputs">
+            <div class="form-group">
+                <label for="tankSize">Spray Tank Size (gallons):</label>
+                <select id="tankSize" onchange="calculateSprayMix()">
+                    <option value="15">15 gallon</option>
+                    <option value="25" selected>25 gallon</option>
+                    <option value="40">40 gallon</option>
+                    <option value="60">60 gallon</option>
+                    <option value="100">100 gallon</option>
+                    <option value="200">200 gallon</option>
+                    <option value="300">300 gallon</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="acreage">Acres to Spray:</label>
+                <input type="number" id="acreage" value="10" step="0.1" min="0.1" onchange="calculateSprayMix()">
+            </div>
+            
+            <div class="form-group">
+                <label for="herbicide">Herbicide:</label>
+                <select id="herbicide" onchange="calculateSprayMix()">
+                    <option value="2,4-D">2,4-D LV Ester</option>
+                    <option value="Grazon P+D">Grazon P+D</option>
+                    <option value="Dicamba">Dicamba (tank mix)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="weedTarget">Primary Target Weed:</label>
+                <select id="weedTarget" onchange="calculateSprayMix()">
+                    <option value="general">General Broadleaf</option>
+                    <option value="wooly-croton">Wooly Croton</option>
+                    <option value="dogfennel">Dogfennel</option>
+                    <option value="sesbania">Sesbania</option>
+                    <option value="thistle">Bull Thistle</option>
+                    <option value="ragweed">Giant Ragweed</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="surfactant" onchange="calculateSprayMix()"> 
+                    Add Non-Ionic Surfactant (NIS)
+                </label>
+                <small style="color: #666; display: block; margin-top: 0.25rem;">Improves herbicide penetration</small>
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="blueDye" onchange="calculateSprayMix()"> 
+                    Add Blue Dye Marker
+                </label>
+                <small style="color: #666; display: block; margin-top: 0.25rem;">Track coverage and avoid overlap</small>
+            </div>
+        </div>
+        
+        <div id="calculatorResults">
+            <!-- Results will be populated here -->
+        </div>
+    </div>
+</div>
+
+    
+<!-- Species Guide Modal -->
+<div id="speciesModal" class="modal">
+    <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3>📚 Central Texas Weed Species Guide</h3>
+        <div id="speciesContainer"></div>
+        <div id="speciesDetail" style="display: none;"></div>
     </div>
 </div>
     
@@ -2005,22 +2501,22 @@ let selectedArea = null;
         
         // Tab functions
         function switchTab(tabName) {
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            // Remove active class from all tab buttons
-            document.querySelectorAll('.tab-button').forEach(button => {
-                button.classList.remove('active');
-            });
-            
-            // Show selected tab content
-            document.getElementById(tabName + 'Tab').classList.add('active');
-            
-            // Activate selected tab button
-            event.target.classList.add('active');
-        }
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabName + 'Tab').classList.add('active');
+    
+    // Activate selected tab button
+    event.target.classList.add('active');
+}
         
         // Photo functions
         function takePhoto() {
@@ -2048,6 +2544,8 @@ let selectedArea = null;
     document.getElementById('obtainedModal').style.display = 'none';
     document.getElementById('areaModal').style.display = 'none';
     document.getElementById('shreddingModal').style.display = 'none';
+    document.getElementById('speciesModal').style.display = 'none';        // ADD THIS
+    document.getElementById('calculatorModal').style.display = 'none';     // ADD THIS
     clearModalInputs();
 }
         
@@ -3818,6 +4316,7 @@ function deleteMaterial(materialId) {
 
 // CUSTOM SHREDDING AREA SYSTEM
 function initializeCustomShredMap() {
+    initializeWeedSystem();
     displayShreddingAreas();
     updateAreaStats();
 }
@@ -4243,6 +4742,537 @@ function confirmDeleteArea() {
     }
 }
 
+// CENTRAL TEXAS WEED MANAGEMENT SYSTEM
+const weedDatabase = [
+    {
+        id: 'wooly-croton',
+        name: 'Wooly Croton',
+        scientificName: 'Croton capitatus',
+        type: 'Annual',
+        description: 'Most problematic Texas pasture weed. Gray-wooly appearance, spreads rapidly.',
+        identifiers: ['Gray-wooly leaves', 'Clusters of small flowers', 'Grows 1-3 feet tall', 'Strong taproot'],
+        seedTiming: 'August-October',
+        peakSeason: 'July-September',
+        optimalShred: 'May-June (before flowering), Late October (after seed drop)',
+        avoidShred: 'July-September (spreading seeds while cutting)',
+        sprayTiming: {
+            primary: 'April-May (young plants)',
+            secondary: 'September-October (fall regrowth)',
+            chemical: '2,4-D at 1-2 lbs ae/acre',
+            notes: 'Best control on young plants before flowering'
+        },
+        resistance: 'Develops 2,4-D resistance - rotate chemicals',
+        monthlyActions: {
+            'January': 'Plan spray program',
+            'February': 'Order chemicals',
+            'March': 'Pre-emergence if needed',
+            'April': 'SPRAY - Young plants emerging',
+            'May': 'SPRAY - Last chance before flowering',
+            'June': 'SHRED - Before seed set',
+            'July': 'AVOID - Seeds developing',
+            'August': 'AVOID - Seeds dropping',
+            'September': 'AVOID - Seeds dispersing',
+            'October': 'SHRED - After seed drop complete',
+            'November': 'SHRED - Safe period',
+            'December': 'Plan next year'
+        }
+    },
+    {
+        id: 'dogfennel',
+        name: 'Dogfennel',
+        scientificName: 'Eupatorium capillifolium',
+        type: 'Perennial',
+        description: 'Tall, feathery perennial. Very persistent with extensive root system.',
+        identifiers: ['Feathery, fine leaves', 'Grows 3-10 feet tall', 'White flower clusters', 'Strong smell when crushed'],
+        seedTiming: 'September-November',
+        peakSeason: 'August-October',
+        optimalShred: 'June-July (weakens root system), November-December (after seed drop)',
+        avoidShred: 'August-October (seed dispersal period)',
+        sprayTiming: {
+            primary: 'May-June (active growth)',
+            secondary: 'September (fall treatment)',
+            chemical: '2,4-D + Dicamba mix, or Grazon P+D',
+            notes: 'Requires heavy rates, multiple treatments'
+        },
+        resistance: 'Very persistent - may need 2-3 years of treatment',
+        monthlyActions: {
+            'January': 'Plan aggressive control strategy',
+            'February': 'Order specialized herbicides',
+            'March': 'Early detection spraying',
+            'April': 'Continue spray program',
+            'May': 'SPRAY - Peak effectiveness',
+            'June': 'SPRAY/SHRED - Multiple approaches',
+            'July': 'SHRED - Weaken plants',
+            'August': 'AVOID - Seed development',
+            'September': 'SPRAY - Fall treatment window',
+            'October': 'AVOID - Seeds dropping',
+            'November': 'SHRED - Safe period',
+            'December': 'Monitor for regrowth'
+        }
+    },
+    {
+        id: 'sesbania',
+        name: 'Sesbania (Coffeeweed)',
+        scientificName: 'Sesbania herbacea',
+        type: 'Annual Legume',
+        description: 'Fast-growing annual legume making a comeback. Toxic to livestock.',
+        identifiers: ['Compound leaves', 'Yellow flowers', 'Long seed pods', 'Grows 3-8 feet tall'],
+        seedTiming: 'September-October',
+        peakSeason: 'July-September',
+        optimalShred: 'June-July (before pod formation)',
+        avoidShred: 'August-September (pods forming/dropping)',
+        sprayTiming: {
+            primary: 'April-May (young plants)',
+            secondary: 'Early June (last chance)',
+            chemical: '2,4-D at 2 lbs ae/acre + surfactant',
+            notes: 'Harder to kill as it matures'
+        },
+        resistance: 'Can develop resistance - use tank mixes',
+        monthlyActions: {
+            'January': 'Plan early detection',
+            'February': 'Prepare spray equipment',
+            'March': 'Scout for early emergence',
+            'April': 'SPRAY - Young plants',
+            'May': 'SPRAY - Continue program',
+            'June': 'SHRED - Before pod set',
+            'July': 'Monitor - pods forming',
+            'August': 'AVOID - pods maturing',
+            'September': 'AVOID - seeds dropping',
+            'October': 'Plan next year control',
+            'November': 'Post-harvest assessment',
+            'December': 'Equipment maintenance'
+        }
+    },
+    {
+        id: 'thistle',
+        name: 'Bull Thistle',
+        scientificName: 'Cirsium vulgare',
+        type: 'Biennial',
+        description: 'Spiny biennial weed. Deep taproot makes it persistent.',
+        identifiers: ['Spiny leaves and stems', 'Purple flower heads', 'Grows 2-5 feet', 'Deep taproot'],
+        seedTiming: 'July-September',
+        peakSeason: 'June-August',
+        optimalShred: 'April-May (rosette stage), October (after seed drop)',
+        avoidShred: 'June-September (flowering and seeding)',
+        sprayTiming: {
+            primary: 'March-April (rosette stage)',
+            secondary: 'October-November (fall rosettes)',
+            chemical: '2,4-D at 1.5 lbs ae/acre',
+            notes: 'Most effective on rosettes'
+        },
+        resistance: 'Generally sensitive to 2,4-D',
+        monthlyActions: {
+            'January': 'Plan spring program',
+            'February': 'Scout for rosettes',
+            'March': 'SPRAY - Rosette stage',
+            'April': 'SPRAY/SHRED - Still effective',
+            'May': 'SHRED - Last chance',
+            'June': 'AVOID - Flowering',
+            'July': 'AVOID - Peak seeding',
+            'August': 'AVOID - Seeds dispersing',
+            'September': 'AVOID - Late seeding',
+            'October': 'SHRED - New rosettes',
+            'November': 'SPRAY - Fall rosettes',
+            'December': 'Equipment prep'
+        }
+    },
+    {
+        id: 'ragweed',
+        name: 'Giant Ragweed',
+        scientificName: 'Ambrosia trifida',
+        type: 'Annual',
+        description: 'Tall annual weed. Major allergen producer.',
+        identifiers: ['Large 3-lobed leaves', 'Grows 6-12 feet tall', 'Wind-pollinated flowers', 'Massive seed production'],
+        seedTiming: 'August-October',
+        peakSeason: 'July-September',
+        optimalShred: 'June-July (before flowering)',
+        avoidShred: 'August-September (pollen and seed production)',
+        sprayTiming: {
+            primary: 'April-May (young plants)',
+            secondary: 'Early June (before flowering)',
+            chemical: '2,4-D at 1.5 lbs ae/acre + AMS',
+            notes: 'Add surfactant for better control'
+        },
+        resistance: 'Some 2,4-D resistance reported',
+        monthlyActions: {
+            'January': 'Plan control strategy',
+            'February': 'Order herbicides',
+            'March': 'Early emergence spraying',
+            'April': 'SPRAY - Peak effectiveness',
+            'May': 'SPRAY - Continue program',
+            'June': 'SHRED - Before flowering',
+            'July': 'Monitor - flowering starting',
+            'August': 'AVOID - Peak pollen/seeds',
+            'September': 'AVOID - Seed dispersal',
+            'October': 'Post-season cleanup',
+            'November': 'Plan next year',
+            'December': 'Equipment maintenance'
+        }
+    }
+];
+
+// Initialize weed management system
+function initializeWeedSystem() {
+    updateCurrentAlerts();
+    updateSprayConditions();
+}
+
+function viewCurrentAlerts() {
+    const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+    let alertsHtml = `<h3>📅 ${currentMonth} Weed Management</h3>`;
+    
+    weedDatabase.forEach(weed => {
+        const action = weed.monthlyActions[currentMonth];
+        const priority = action.includes('SPRAY') || action.includes('SHRED') ? 'high' : 
+                        action.includes('AVOID') ? 'warning' : 'low';
+        
+        const bgColor = priority === 'high' ? '#d4edda' : 
+                       priority === 'warning' ? '#fff3cd' : '#f8f9fa';
+        const textColor = priority === 'high' ? '#155724' : 
+                         priority === 'warning' ? '#856404' : '#666';
+        
+        alertsHtml += `
+            <div style="background: ${bgColor}; padding: 0.75rem; margin: 0.5rem 0; border-radius: 8px; border-left: 4px solid ${priority === 'high' ? '#28a745' : priority === 'warning' ? '#ffc107' : '#6c757d'};">
+                <strong style="color: ${textColor};">${weed.name}:</strong>
+                <span style="color: ${textColor};">${action}</span>
+            </div>
+        `;
+    });
+    
+    document.getElementById('monthlyAlerts').innerHTML = alertsHtml;
+}
+
+function updateCurrentAlerts() {
+    viewCurrentAlerts();
+}
+
+function updateSprayConditions() {
+    if (currentWeather) {
+        const windSpeed = currentWeather.windSpeed;
+        const temp = currentWeather.temp;
+        const humidity = currentWeather.humidity;
+        
+        let conditions = '';
+        let bgColor = '#f8f9fa';
+        
+        if (windSpeed <= 10 && temp >= 65 && temp <= 85 && humidity >= 40) {
+            conditions = `✅ EXCELLENT spray conditions! Wind: ${windSpeed}mph, Temp: ${temp}°F, Humidity: ${humidity}%`;
+            bgColor = '#d4edda';
+        } else if (windSpeed <= 15 && temp >= 60 && temp <= 90) {
+            conditions = `⚠️ Fair spray conditions. Wind: ${windSpeed}mph, Temp: ${temp}°F - Use caution`;
+            bgColor = '#fff3cd';
+        } else {
+            conditions = `❌ Poor spray conditions. Wind: ${windSpeed}mph, Temp: ${temp}°F - Avoid spraying`;
+            bgColor = '#f8d7da';
+        }
+        
+        document.getElementById('conditionsContent').innerHTML = conditions;
+        document.getElementById('sprayConditions').style.background = bgColor;
+    }
+}
+
+function viewSpeciesGuide() {
+    document.getElementById('speciesModal').style.display = 'block';
+    displaySpeciesGuide();
+}
+
+function displaySpeciesGuide() {
+    const container = document.getElementById('speciesContainer');
+    let html = '';
+    
+    weedDatabase.forEach(weed => {
+        const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+        const currentAction = weed.monthlyActions[currentMonth];
+        const isActive = currentAction.includes('SPRAY') || currentAction.includes('SHRED');
+        
+        html += `
+            <div class="species-card ${isActive ? 'active-season' : ''}" onclick="showSpeciesDetail('${weed.id}')">
+                <div class="species-header">
+                    <h3>${weed.name}</h3>
+                    <span class="species-type">${weed.type}</span>
+                </div>
+                <div class="species-scientific">${weed.scientificName}</div>
+                <div class="species-description">${weed.description}</div>
+                <div class="species-current-action">
+                    <strong>This Month:</strong> ${currentAction}
+                </div>
+                <div class="species-identifiers">
+                    <strong>ID Features:</strong> ${weed.identifiers.slice(0, 2).join(', ')}
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function showSpeciesDetail(weedId) {
+    const weed = weedDatabase.find(w => w.id === weedId);
+    if (!weed) return;
+    
+    const detail = document.getElementById('speciesDetail');
+    detail.innerHTML = `
+        <h2>${weed.name} (${weed.scientificName})</h2>
+        <div class="detail-section">
+            <h3>🔍 Identification</h3>
+            <ul>${weed.identifiers.map(id => `<li>${id}</li>`).join('')}</ul>
+        </div>
+        <div class="detail-section">
+            <h3>📅 Timing</h3>
+            <p><strong>Peak Season:</strong> ${weed.peakSeason}</p>
+            <p><strong>Seeds Drop:</strong> ${weed.seedTiming}</p>
+        </div>
+        <div class="detail-section">
+            <h3>🌾 Shredding Strategy</h3>
+            <p><strong>Best Times:</strong> ${weed.optimalShred}</p>
+            <p><strong>Avoid:</strong> ${weed.avoidShred}</p>
+        </div>
+        <div class="detail-section">
+            <h3>🧪 Chemical Control</h3>
+            <p><strong>Primary:</strong> ${weed.sprayTiming.primary}</p>
+            <p><strong>Chemical:</strong> ${weed.sprayTiming.chemical}</p>
+            <p><strong>Notes:</strong> ${weed.sprayTiming.notes}</p>
+            <p><strong>Resistance:</strong> ${weed.resistance}</p>
+        </div>
+        <button onclick="backToSpeciesList()" class="btn btn-secondary">← Back to List</button>
+    `;
+    
+    document.getElementById('speciesContainer').style.display = 'none';
+    detail.style.display = 'block';
+}
+
+function backToSpeciesList() {
+    document.getElementById('speciesContainer').style.display = 'block';
+    document.getElementById('speciesDetail').style.display = 'none';
+}
+
+function viewCalendar() {
+    alert('Calendar View coming in next step!');
+}
+
+function sprayCalculator() {
+    document.getElementById('calculatorModal').style.display = 'block';
+    initializeCalculator();
+}
+
+function initializeCalculator() {
+    // Set default values
+    document.getElementById('tankSize').value = '25';
+    document.getElementById('acreage').value = '10';
+    document.getElementById('herbicide').value = '2,4-D';
+    calculateSprayMix();
+}
+
+function calculateSprayMix() {
+    const tankSize = parseFloat(document.getElementById('tankSize').value) || 0;
+    const acreage = parseFloat(document.getElementById('acreage').value) || 0;
+    const herbicide = document.getElementById('herbicide').value;
+    const weedType = document.getElementById('weedTarget').value;
+    const addSurfactant = document.getElementById('surfactant').checked;
+    const addDye = document.getElementById('blueDye').checked;
+    
+    if (tankSize <= 0 || acreage <= 0) {
+        document.getElementById('calculatorResults').innerHTML = '<p>Please enter valid tank size and acreage</p>';
+        return;
+    }
+    
+    // Get herbicide rates based on weed and chemical
+    const rates = getHerbicideRates(herbicide, weedType);
+    
+    // Calculate total spray solution needed
+    const gpa = 15; // gallons per acre
+    const totalSolutionNeeded = acreage * gpa;
+    
+    // Calculate how to fill tanks efficiently
+    const fullTanks = Math.floor(totalSolutionNeeded / tankSize);
+    const partialTankGallons = totalSolutionNeeded % tankSize;
+    const totalTanks = fullTanks + (partialTankGallons > 0 ? 1 : 0);
+    
+    // Calculate total chemicals needed
+    const totalHerbicideNeeded = rates.herbicide * acreage;
+    const totalSurfactantNeeded = addSurfactant ? totalSolutionNeeded * 0.0025 : 0; // 0.25% v/v
+    const totalDyeNeeded = addDye ? totalSolutionNeeded * 0.002 : 0; // 0.2% v/v
+    
+    // Create tank-by-tank breakdown
+    let tankBreakdown = [];
+    
+    // Full tanks
+    for (let i = 0; i < fullTanks; i++) {
+        const waterInTank = tankSize;
+        const herbicideInTank = (waterInTank / totalSolutionNeeded) * totalHerbicideNeeded;
+        const surfactantInTank = addSurfactant ? waterInTank * 0.0025 : 0;
+        const dyeInTank = addDye ? waterInTank * 0.002 : 0;
+        
+        tankBreakdown.push({
+            tankNumber: i + 1,
+            waterGallons: waterInTank,
+            herbicideOz: herbicideInTank,
+            surfactantOz: surfactantInTank * 128, // convert to fl oz
+            dyeOz: dyeInTank * 128 // convert to fl oz
+        });
+    }
+    
+    // Partial tank if needed
+    if (partialTankGallons > 0) {
+        const waterInTank = partialTankGallons;
+        const herbicideInTank = (waterInTank / totalSolutionNeeded) * totalHerbicideNeeded;
+        const surfactantInTank = addSurfactant ? waterInTank * 0.0025 : 0;
+        const dyeInTank = addDye ? waterInTank * 0.002 : 0;
+        
+        tankBreakdown.push({
+            tankNumber: fullTanks + 1,
+            waterGallons: waterInTank,
+            herbicideOz: herbicideInTank,
+            surfactantOz: surfactantInTank * 128,
+            dyeOz: dyeInTank * 128
+        });
+    }
+    
+    // Calculate costs
+    const herbicideCost = calculateChemicalCost(herbicide, totalHerbicideNeeded);
+    const surfactantCost = addSurfactant ? calculateChemicalCost('surfactant', totalSurfactantNeeded * 128) : 0;
+    const dyeCost = addDye ? calculateChemicalCost('blueDye', totalDyeNeeded * 128) : 0;
+    
+    displayCalculatorResults({
+        tankSize, acreage, totalTanks, totalSolutionNeeded,
+        totalHerbicideNeeded, totalSurfactantNeeded, totalDyeNeeded,
+        herbicideCost, surfactantCost, dyeCost, rates, tankBreakdown
+    });
+}
+
+function getHerbicideRates(chemical, weedType) {
+    const rates = {
+        '2,4-D': {
+            'wooly-croton': { herbicide: 32, notes: 'Young plants - increase to 48 oz for mature' },
+            'dogfennel': { herbicide: 48, notes: 'Heavy rate needed - consider tank mix' },
+            'sesbania': { herbicide: 48, notes: 'Add surfactant for better control' },
+            'thistle': { herbicide: 32, notes: 'Best on rosettes' },
+            'ragweed': { herbicide: 32, notes: 'Add AMS (ammonium sulfate)' },
+            'general': { herbicide: 32, notes: 'Standard broadleaf rate' }
+        },
+        'Grazon P+D': {
+            'wooly-croton': { herbicide: 24, notes: 'Excellent on resistant populations' },
+            'dogfennel': { herbicide: 32, notes: 'Best choice for persistent stands' },
+            'sesbania': { herbicide: 24, notes: 'Good legume control' },
+            'thistle': { herbicide: 16, notes: 'Very effective on thistles' },
+            'ragweed': { herbicide: 24, notes: 'Good for resistant ragweed' },
+            'general': { herbicide: 24, notes: 'Broad spectrum control' }
+        },
+        'Dicamba': {
+            'wooly-croton': { herbicide: 8, notes: 'Tank mix with 2,4-D' },
+            'dogfennel': { herbicide: 8, notes: 'Tank mix recommended' },
+            'sesbania': { herbicide: 8, notes: 'Good on legumes' },
+            'thistle': { herbicide: 8, notes: 'Excellent thistle control' },
+            'ragweed': { herbicide: 8, notes: 'Tank mix for resistance' },
+            'general': { herbicide: 8, notes: 'Always tank mix' }
+        }
+    };
+    
+    return rates[chemical]?.[weedType] || rates[chemical]?.['general'] || { herbicide: 32, notes: 'Standard rate' };
+}
+
+function calculateChemicalCost(chemical, amount) {
+    const prices = {
+        // Herbicides (per fluid ounce)
+        '2,4-D': 0.35, // per fluid ounce (~$45/gallon)
+        'Grazon P+D': 0.60, // per fluid ounce (~$75/gallon)
+        'Dicamba': 0.75, // per fluid ounce (~$95/gallon)
+        
+        // Additives (per fluid ounce)
+        'surfactant': 0.25, // ~$32.25/gallon ÷ 128 fl oz
+        'blueDye': 0.78     // ~$99.84/gallon ÷ 128 fl oz
+    };
+    
+    return (prices[chemical] || 0.40) * amount;
+}
+
+function displayCalculatorResults(calc) {
+    const totalCost = calc.herbicideCost + calc.surfactantCost + calc.dyeCost;
+    const costPerAcre = totalCost / calc.acreage;
+    
+    document.getElementById('calculatorResults').innerHTML = `
+        <div class="calc-results">
+            <h4>🧪 Spray Mix Calculator Results</h4>
+            
+            <div class="calc-summary">
+                <div class="calc-item">
+                    <span class="calc-label">Coverage:</span>
+                    <span class="calc-value">${calc.acreage} acres in ${calc.totalTanks} tank(s)</span>
+                </div>
+                <div class="calc-item">
+                    <span class="calc-label">Total Solution:</span>
+                    <span class="calc-value">${calc.totalSolutionNeeded} gallons needed</span>
+                </div>
+                <div class="calc-item">
+                    <span class="calc-label">Application Rate:</span>
+                    <span class="calc-value">15 gallons per acre</span>
+                </div>
+            </div>
+            
+            <h5>📋 Tank-by-Tank Mixing:</h5>
+            <div class="tank-breakdown">
+                ${calc.tankBreakdown.map(tank => `
+                    <div class="tank-mix">
+                        <h6>Tank ${tank.tankNumber} (${tank.waterGallons.toFixed(1)} gallons):</h6>
+                        <div class="mix-item">
+                            <span class="mix-chemical">Water:</span>
+                            <span class="mix-amount">${tank.waterGallons.toFixed(1)} gallons</span>
+                        </div>
+                        <div class="mix-item">
+                            <span class="mix-chemical">Herbicide:</span>
+                            <span class="mix-amount">${tank.herbicideOz.toFixed(1)} fl oz</span>
+                        </div>
+                        ${tank.surfactantOz > 0 ? `
+                            <div class="mix-item">
+                                <span class="mix-chemical">Surfactant (NIS):</span>
+                                <span class="mix-amount">${tank.surfactantOz.toFixed(1)} fl oz</span>
+                            </div>
+                        ` : ''}
+                        ${tank.dyeOz > 0 ? `
+                            <div class="mix-item">
+                                <span class="mix-chemical">Blue Dye:</span>
+                                <span class="mix-amount">${tank.dyeOz.toFixed(1)} fl oz</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+            
+            <h5>💰 Cost Breakdown:</h5>
+            <div class="cost-breakdown">
+                <div class="cost-item">
+                    <span>Herbicide (${calc.totalHerbicideNeeded.toFixed(1)} fl oz total):</span>
+                    <span>$${calc.herbicideCost.toFixed(2)}</span>
+                </div>
+                ${calc.surfactantCost > 0 ? `
+                    <div class="cost-item">
+                        <span>Surfactant:</span>
+                        <span>$${calc.surfactantCost.toFixed(2)}</span>
+                    </div>
+                ` : ''}
+                ${calc.dyeCost > 0 ? `
+                    <div class="cost-item">
+                        <span>Blue Dye:</span>
+                        <span>$${calc.dyeCost.toFixed(2)}</span>
+                    </div>
+                ` : ''}
+                <div class="cost-item total-cost">
+                    <span><strong>Total Cost:</strong></span>
+                    <span><strong>$${totalCost.toFixed(2)} ($${costPerAcre.toFixed(2)}/acre)</strong></span>
+                </div>
+            </div>
+            
+            <div class="calc-notes">
+                <h5>📝 Application Notes:</h5>
+                <p>${calc.rates.notes}</p>
+                <p><strong>Spray Pressure:</strong> 30-40 PSI for good coverage</p>
+                <p><strong>Speed:</strong> 5-7 MPH for even application</p>
+                <p><strong>Weather:</strong> Wind &lt;10mph, temp 65-85°F, no rain for 4+ hours</p>
+            </div>
+        </div>
+    `;
+}
+        
 function saveShreddingAreas() {
     localStorage.setItem('shreddingAreas', JSON.stringify(shreddingAreas));
 }
