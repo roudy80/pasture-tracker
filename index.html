@@ -2169,7 +2169,7 @@
 <div id="shreddingModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeModal()">&times;</span>
-        <h3>🌾 Mark Area as Shredded</h3>
+<h3>🌾 Area Management</h3>
         
         <div style="text-align: center; margin: 1rem 0;">
             <div style="font-size: 1.2rem; font-weight: bold; color: #228B22;" id="shreddingAreaName"></div>
@@ -2188,6 +2188,7 @@
         
         <input type="hidden" id="shreddingAreaId">
         <button class="btn btn-primary" onclick="confirmShredding()">✅ Mark as Shredded</button>
+<button class="btn btn-secondary" onclick="confirmSpraying()" style="background: #007bff; color: white; margin-left: 0.5rem;">🧪 Mark as Sprayed</button>
         <button class="btn btn-secondary" onclick="viewAreaHistory()">📅 View History</button>
     </div>
 </div>
@@ -2221,7 +2222,7 @@ let ranchLines = JSON.parse(localStorage.getItem('ranchLines') || '[]');let isEd
 let selectedArea = null;
      
         // Initialize app when page loads
-document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {
     initializeBurnBanControls();
     displayPastures();
     displayAnimals();
@@ -2231,15 +2232,35 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeOfflineMode();
     
     initializeCustomShredMap();
-    initializeWeedSystem();
-    displayRanchLines();
     
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('data:text/javascript,console.log("SW registered")');
     }
 });
+        
+        // Burn ban functions
+        function initializeBurnBanControls() {
+            updateBurnBanDisplay('fayette');
+        }
 
-// Burn ban functions
+        // Initialize app when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeBurnBanControls();
+            displayPastures();
+            displayAnimals();
+            displayProjects();
+            requestNotificationPermission();
+            loadWeather();
+            initializeOfflineMode();
+            
+            initializeMap();
+            
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('data:text/javascript,console.log("SW registered")');
+            }
+        });
+        
+        // Burn ban functions
         function initializeBurnBanControls() {
             updateBurnBanDisplay('fayette');
         }
@@ -2765,10 +2786,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('calculatorModal').style.display = 'none';
     document.getElementById('editAreaModal').style.display = 'none';
     document.getElementById('resizeAreaModal').style.display = 'none';
-    clearModalInputs();  
+                       document.getElementById('editLineModal').style.display = 'none';      
     document.getElementById('lineModal').style.display = 'none';
-    document.getElementById('editLineModal').style.display = 'none';// 
-}
+    clearModalInputs();
+    }
         
         function clearModalInputs() {
             document.getElementById('photoLocation').value = '';
@@ -4812,6 +4833,7 @@ function confirmDeleteLine() {
         alert('Line deleted successfully!');
     }
 }
+
         
 function saveRanchLines() {
     localStorage.setItem('ranchLines', JSON.stringify(ranchLines));
@@ -4862,6 +4884,9 @@ const sizeMap = {
             },
             polygonPoints: shape === 'polygon' ? [] : null,
             lastShredded: null,
+            lastSprayed: null,
+            sprayHistory: [],
+            sprayNotes: [], 
             history: [],
             notes: []
         };
@@ -4898,34 +4923,43 @@ function displayShreddingAreas() {
         areaDiv.onclick = () => handleAreaClick(area);  
         container.appendChild(areaDiv);
     });
+
+        displayRanchLines();
 }
 
 function getAreaColorClass(area) {
-    if (!area.lastShredded) return 'never-shredded';
+    const shredDays = area.lastShredded ? (Date.now() - new Date(area.lastShredded)) / (1000 * 60 * 60 * 24) : 999;
+    const sprayDays = area.lastSprayed ? (Date.now() - new Date(area.lastSprayed)) / (1000 * 60 * 60 * 24) : 999;
     
-    const daysSince = (Date.now() - new Date(area.lastShredded)) / (1000 * 60 * 60 * 24);
+    // Use the most recent action (either shred or spray)
+    const daysSince = Math.min(shredDays, sprayDays);
     
+    if (!area.lastShredded && !area.lastSprayed) return 'never-shredded';
     if (daysSince <= 30) return 'recent';
     if (daysSince <= 60) return 'needs-attention';
     return 'overdue';
 }
 
 function getAreaTooltip(area) {
-    if (!area.lastShredded) return `${area.name} - Never shredded`;
+    let tooltip = area.name;
     
-    const daysSince = Math.floor((Date.now() - new Date(area.lastShredded)) / (1000 * 60 * 60 * 24));
-    const lastDate = new Date(area.lastShredded).toLocaleDateString();
-    
-    return `${area.name}\nLast shredded: ${lastDate}\n(${daysSince} days ago)`;
-}
-
-function handleAreaClick(area) {
-    
-    if (isEditMode === true) {
-        editArea(area);
-    } else {
-        markAreaShredded(area);
+    if (area.lastShredded) {
+        const shredDays = Math.floor((Date.now() - new Date(area.lastShredded)) / (1000 * 60 * 60 * 24));
+        const shredDate = new Date(area.lastShredded).toLocaleDateString();
+        tooltip += `\nLast shredded: ${shredDate} (${shredDays} days ago)`;
     }
+    
+    if (area.lastSprayed) {
+        const sprayDays = Math.floor((Date.now() - new Date(area.lastSprayed)) / (1000 * 60 * 60 * 24));
+        const sprayDate = new Date(area.lastSprayed).toLocaleDateString();
+        tooltip += `\nLast sprayed: ${sprayDate} (${sprayDays} days ago)`;
+    }
+    
+    if (!area.lastShredded && !area.lastSprayed) {
+        tooltip += '\nNever shredded or sprayed';
+    }
+    
+    return tooltip;
 }
 
 function markAreaShredded(area) {
@@ -4971,7 +5005,7 @@ function confirmShredding() {
             note: notes
         });
     }
-    
+
     // Keep only last 10 entries
     if (area.history.length > 10) area.history = area.history.slice(0, 10);
     if (area.notes.length > 10) area.notes = area.notes.slice(0, 10);
@@ -4984,6 +5018,47 @@ function confirmShredding() {
     alert(`${area.name} marked as shredded on ${new Date(shreddingDate).toLocaleDateString()}!`);
 }
 
+
+function confirmSpraying() {
+    const areaId = document.getElementById('shreddingAreaId').value;
+    const sprayDate = document.getElementById('shreddingDate').value;
+    const notes = document.getElementById('shreddingNotes').value.trim();
+    
+    if (!sprayDate) {
+        alert('Please select a date');
+        return;
+    }
+    
+    const area = shreddingAreas.find(a => a.id == areaId);
+    if (!area) return;
+    
+    // Initialize spray fields if they don't exist (for existing areas)
+if (!area.sprayHistory) area.sprayHistory = [];
+if (!area.sprayNotes) area.sprayNotes = [];
+
+area.lastSprayed = sprayDate;
+area.sprayHistory.unshift(sprayDate);
+
+if (notes) {
+    area.sprayNotes.unshift({
+        date: sprayDate,
+        note: notes
+    });
+}
+    
+    // Keep only last 10 entries
+    if (area.sprayHistory.length > 10) area.sprayHistory = area.sprayHistory.slice(0, 10);
+    if (area.sprayNotes.length > 10) area.sprayNotes = area.sprayNotes.slice(0, 10);
+    
+    saveShreddingAreas();
+    displayShreddingAreas();
+    updateAreaStats();
+    closeModal();
+    
+    alert(`${area.name} marked as sprayed on ${new Date(sprayDate).toLocaleDateString()}!`);
+}
+
+        
 function viewAreaHistory() {
     const areaId = document.getElementById('shreddingAreaId').value;
     const area = shreddingAreas.find(a => a.id == areaId);
@@ -4991,28 +5066,48 @@ function viewAreaHistory() {
     
     let history = `📅 ${area.name.toUpperCase()} HISTORY\n\n`;
     
-    if (area.history.length === 0) {
-        history += 'No shredding history yet.';
-    } else {
+    // Shredding history
+    if (area.history && area.history.length > 0) {
         history += 'SHREDDING DATES:\n';
         area.history.forEach((date, index) => {
             const daysSince = Math.floor((Date.now() - new Date(date)) / (1000 * 60 * 60 * 24));
             history += `${index + 1}. ${new Date(date).toLocaleDateString()} (${daysSince} days ago)\n`;
             
             // Add notes if any
-            const note = area.notes.find(n => n.date === date);
+            const note = area.notes && area.notes.find(n => n.date === date);
             if (note) {
                 history += `   📝 ${note.note}\n`;
             }
         });
+        history += '\n';
+    }
+    
+    // Spray history
+    if (area.sprayHistory && area.sprayHistory.length > 0) {
+        history += 'SPRAY DATES:\n';
+        area.sprayHistory.forEach((date, index) => {
+            const daysSince = Math.floor((Date.now() - new Date(date)) / (1000 * 60 * 60 * 24));
+            history += `${index + 1}. ${new Date(date).toLocaleDateString()} (${daysSince} days ago)\n`;
+            
+            // Add notes if any
+            const note = area.sprayNotes && area.sprayNotes.find(n => n.date === date);
+            if (note) {
+                history += `   📝 ${note.note}\n`;
+            }
+        });
+        history += '\n';
+    }
+    
+    // If no history at all
+    if ((!area.history || area.history.length === 0) && (!area.sprayHistory || area.sprayHistory.length === 0)) {
+        history += 'No shredding or spray history yet.';
     }
     
     alert(history);
 }
 
 function handleAreaClick(area) {
-    
-    if (isEditMode) {
+    if (isEditMode === true) {
         editArea(area);
     } else {
         markAreaShredded(area);
