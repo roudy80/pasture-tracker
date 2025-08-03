@@ -987,6 +987,73 @@
             border-radius: 8px;
         }
 
+        .shredding-area.oval {
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+}
+
+.shredding-area.square {
+    border-radius: 4px;
+}
+
+.shredding-area.square {
+    aspect-ratio: 1;
+}
+
+.ranch-line {
+            cursor: pointer;
+            z-index: 5;
+        }
+        
+        .ranch-line.property {
+            background: #dc3545;
+        }
+        
+        .ranch-line.fence {
+            background: #000000;
+        }
+        
+        .ranch-line.driveway {
+            background: #8e44ad;
+        }
+        
+        .ranch-line.reference {
+            background: #6c757d;
+        }
+        
+        .ranch-line.water {
+            background: #007bff;
+        }
+        
+        .ranch-line.power {
+            background: #ffc107;
+        }
+        
+        .ranch-line.gas {
+            background: #8b4513;
+        }
+        
+        .ranch-line.irrigation {
+            background: #fd7e14;
+        }
+        
+        .ranch-line.septic {
+            background: #e9ecef;
+        }
+        
+        .ranch-line.easement {
+            background: #28a745;
+        }
+        
+        .ranch-line.dashed {
+            background: repeating-linear-gradient(
+                to right,
+                currentColor 0px,
+                currentColor 10px,
+                transparent 10px,
+                transparent 20px
+            );
+        }        
+        
         /* Cannabis Leaf Icon */
         .weed-leaf {
     display: inline-block;
@@ -1465,6 +1532,7 @@
     <div class="action-buttons">
         <button class="btn btn-primary" id="editAreasBtn" onclick="toggleEditMode()">✏️ EDIT AREAS</button>
         <button class="btn btn-secondary" onclick="addNewArea()">➕ ADD AREA</button>
+        <button class="btn btn-secondary" onclick="addNewLine()">📏 ADD LINE</button>        
         <button class="btn btn-secondary" onclick="viewShredHistory()">📊 VIEW HISTORY</button>
     </div>
     
@@ -1472,7 +1540,7 @@
         <h3 style="color: #856404; margin: 0;">✏️ EDIT MODE - Click areas to modify</h3>
     </div>
     
-    <div id="ranch-map-container" style="width: 100%; height: 400px; position: relative; border-radius: 15px; overflow: hidden; background: #f0f0f0; background-image: url('landphoto.png'); background-size: cover; background-position: center;">
+    <div id="ranch-map-container" style="width: 100%; height: 400px; position: relative; border-radius: 15px; overflow: hidden; background: #90EE90; border: 2px solid #228B22;">
         <div id="shredding-areas"></div>
     </div>
     
@@ -1868,6 +1936,184 @@
         </div>
     </div>
 
+<!-- Edit Line Modal -->
+<div id="editLineModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3>✏️ Edit Line</h3>
+        
+        <div class="form-group">
+            <label for="editLineName">Line Name:</label>
+            <input type="text" id="editLineName" placeholder="e.g., Front Fence, Main Driveway">
+        </div>
+        
+        <div class="form-group">
+            <label for="editLineType">Line Type:</label>
+            <select id="editLineType">
+                <option value="property">🔴 Property Boundary</option>
+                <option value="fence">⚫ Fence Line</option>
+                <option value="driveway">🟣 Driveway</option>
+                <option value="reference">⚪ Reference Line</option>
+                <option value="water">🔵 Water Line</option>
+                <option value="power">🟡 Power Line</option>
+                <option value="gas">🟤 Gas Line</option>
+                <option value="irrigation">🟠 Irrigation</option>
+                <option value="septic">⚪ Septic/Sewer</option>
+                <option value="easement">🟢 Easement</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="editLineDirection">Direction:</label>
+            <select id="editLineDirection">
+                <option value="horizontal">↔️ Horizontal</option>
+                <option value="vertical">↕️ Vertical</option>
+                <option value="diagonal-ne">↗️ Diagonal NE</option>
+                <option value="diagonal-nw">↖️ Diagonal NW</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="editLineLength">Length:</label>
+            <select id="editLineLength">
+                <option value="short">Short (50ft)</option>
+                <option value="medium">Medium (100ft)</option>
+                <option value="long">Long (200ft)</option>
+                <option value="extralong">Extra Long (300ft)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="editLineStyle">Line Style:</label>
+            <select id="editLineStyle">
+                <option value="solid">━━━ Solid</option>
+                <option value="dashed">┅┅┅ Dashed (Utilities)</option>
+            </select>
+        </div>
+        
+        <input type="hidden" id="editLineId">
+        
+        <div class="edit-actions" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-top: 1.5rem;">
+            <button class="btn btn-primary" onclick="saveLineEdits()">💾 Save</button>
+            <button class="btn btn-secondary" onclick="startMoveLine()">📍 Move</button>
+            <button class="btn btn-delete" onclick="confirmDeleteLine()" style="background: #dc3545; color: white;">🗑️ Delete</button>
+        </div>
+    </div>
+</div>
+    
+<!-- Line Creation Modal -->
+<div id="lineModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3 id="lineModalTitle">Create New Line</h3>
+        
+        <div class="form-group">
+            <label for="lineName">Line Name (optional):</label>
+            <input type="text" id="lineName" placeholder="e.g., Front Fence, Main Driveway">
+        </div>
+        
+        <div class="form-group">
+            <label for="lineType">Line Type:</label>
+            <select id="lineType">
+                <option value="property">🔴 Property Boundary</option>
+                <option value="fence" selected>⚫ Fence Line</option>
+                <option value="driveway">🟣 Driveway</option>
+                <option value="reference">⚪ Reference Line</option>
+                <option value="water">🔵 Water Line</option>
+                <option value="power">🟡 Power Line</option>
+                <option value="gas">🟤 Gas Line</option>
+                <option value="irrigation">🟠 Irrigation</option>
+                <option value="septic">⚪ Septic/Sewer</option>
+                <option value="easement">🟢 Easement</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="lineDirection">Direction:</label>
+            <select id="lineDirection">
+                <option value="horizontal">↔️ Horizontal</option>
+                <option value="vertical">↕️ Vertical</option>
+                <option value="diagonal-ne">↗️ Diagonal NE</option>
+                <option value="diagonal-nw">↖️ Diagonal NW</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="lineLength">Length:</label>
+            <select id="lineLength">
+                <option value="short">Short (50ft)</option>
+                <option value="medium" selected>Medium (100ft)</option>
+                <option value="long">Long (200ft)</option>
+                <option value="extralong">Extra Long (300ft)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="lineStyle">Line Style:</label>
+            <select id="lineStyle">
+                <option value="solid" selected>━━━ Solid</option>
+                <option value="dashed">┅┅┅ Dashed (Utilities)</option>
+            </select>
+        </div>
+        
+        <input type="hidden" id="lineEditId">
+        <button class="btn btn-primary" onclick="createLine()">Create Line</button>
+        <button class="btn btn-secondary" id="deleteLineBtn" onclick="confirmDeleteLine()" style="display: none;">Delete Line</button>
+    </div>
+</div>
+    
+<!-- Resize Area Modal -->
+<div id="resizeAreaModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3>🔄 Resize Area</h3>
+        
+        <div style="text-align: center; margin: 1rem 0;">
+            <strong>Resizing: <span id="resizeAreaName"></span></strong>
+        </div>
+        
+        <div class="form-group">
+            <label for="resizeAreaSize">New Size:</label>
+            <select id="resizeAreaSize">
+                <option value="tiny">Tiny (1-2 acres)</option>
+                <option value="small">Small (2-5 acres)</option>
+                <option value="medium">Medium (5-15 acres)</option>
+                <option value="large">Large (15-25 acres)</option>
+                <option value="huge">Huge (25+ acres)</option>
+            </select>
+        </div>
+        
+        <input type="hidden" id="resizeAreaId">
+        <button class="btn btn-primary" onclick="confirmResize()">✅ Resize Area</button>
+    </div>
+</div>
+    
+
+<!-- Edit Area Modal -->
+<div id="editAreaModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h3>✏️ Edit Shredding Area</h3>
+        
+        <div class="form-group">
+            <label for="editAreaName">Area Name:</label>
+            <input type="text" id="editAreaName" placeholder="e.g., Back 40, Creek Bottom">
+        </div>
+        
+        <input type="hidden" id="editAreaId">
+        
+        <div class="edit-actions" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-top: 1.5rem;">
+    <button class="btn btn-primary" onclick="editAreaProperties()">💾 Save Name</button>
+    <button class="btn btn-secondary" onclick="startMoveArea()">📍 Move Position</button>
+    <button class="btn btn-secondary" onclick="startResizeArea()">🔄 Resize</button>
+</div>
+        
+        <div style="margin-top: 1rem; text-align: center;">
+            <button class="btn btn-delete" onclick="confirmDeleteEditArea()" style="background: #dc3545; color: white;">🗑️ Delete Area</button>
+        </div>
+    </div>
+</div>
+    
 <!-- Shredding Area Modal -->
 <div id="areaModal" class="modal">
     <div class="modal-content">
@@ -1889,13 +2135,25 @@
         </div>
         
         <div class="form-group">
-            <label for="areaSize">Approximate Size:</label>
-            <select id="areaSize">
-                <option value="small">Small (2-5 acres)</option>
-                <option value="medium">Medium (5-15 acres)</option>
-                <option value="large">Large (15+ acres)</option>
-            </select>
-        </div>
+    <label for="areaShape">Shape Type:</label>
+    <select id="areaShape">
+        <option value="rectangle">📐 Rectangle</option>
+        <option value="circle">⭕ Circle</option>
+        <option value="oval">🥚 Oval</option>
+        <option value="square">⬜ Square</option>
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="areaSize">Size:</label>
+    <select id="areaSize">
+        <option value="tiny">Tiny (1-2 acres)</option>
+        <option value="small">Small (2-5 acres)</option>
+        <option value="medium" selected>Medium (5-15 acres)</option>
+        <option value="large">Large (15-25 acres)</option>
+        <option value="huge">Huge (25+ acres)</option>
+    </select>
+</div>
         
         <div id="instructionText" style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin: 1rem 0; font-size: 0.9rem;">
             After creating, click anywhere on the map to position this area.
@@ -1959,11 +2217,11 @@ let currentAnimalFilter = 'all';
 
 // CUSTOM SHREDDING AREA VARIABLES
 let shreddingAreas = JSON.parse(localStorage.getItem('shreddingAreas') || '[]');
-let isEditMode = false;
+let ranchLines = JSON.parse(localStorage.getItem('ranchLines') || '[]');let isEditMode = false;
 let selectedArea = null;
      
         // Initialize app when page loads
-        document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     initializeBurnBanControls();
     displayPastures();
     displayAnimals();
@@ -1973,35 +2231,15 @@ let selectedArea = null;
     initializeOfflineMode();
     
     initializeCustomShredMap();
+    initializeWeedSystem();
+    displayRanchLines();
     
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('data:text/javascript,console.log("SW registered")');
     }
 });
-        
-        // Burn ban functions
-        function initializeBurnBanControls() {
-            updateBurnBanDisplay('fayette');
-        }
 
-        // Initialize app when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeBurnBanControls();
-            displayPastures();
-            displayAnimals();
-            displayProjects();
-            requestNotificationPermission();
-            loadWeather();
-            initializeOfflineMode();
-            
-            initializeMap();
-            
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('data:text/javascript,console.log("SW registered")');
-            }
-        });
-        
-        // Burn ban functions
+// Burn ban functions
         function initializeBurnBanControls() {
             updateBurnBanDisplay('fayette');
         }
@@ -2523,9 +2761,13 @@ let selectedArea = null;
     document.getElementById('obtainedModal').style.display = 'none';
     document.getElementById('areaModal').style.display = 'none';
     document.getElementById('shreddingModal').style.display = 'none';
-    document.getElementById('speciesModal').style.display = 'none';        // ADD THIS
-    document.getElementById('calculatorModal').style.display = 'none';     // ADD THIS
-    clearModalInputs();
+    document.getElementById('speciesModal').style.display = 'none';
+    document.getElementById('calculatorModal').style.display = 'none';
+    document.getElementById('editAreaModal').style.display = 'none';
+    document.getElementById('resizeAreaModal').style.display = 'none';
+    clearModalInputs();  
+    document.getElementById('lineModal').style.display = 'none';
+    document.getElementById('editLineModal').style.display = 'none';// 
 }
         
         function clearModalInputs() {
@@ -4333,6 +4575,248 @@ function addNewArea() {
     document.getElementById('areaModal').style.display = 'block';
 }
 
+function addNewLine() {
+    document.getElementById('lineModalTitle').textContent = 'Create New Line';
+    document.getElementById('lineName').value = '';
+    document.getElementById('lineType').value = 'fence';
+    document.getElementById('lineDirection').value = 'horizontal';
+    document.getElementById('lineLength').value = 'medium';
+    document.getElementById('lineStyle').value = 'solid';
+    document.getElementById('lineEditId').value = '';
+    document.getElementById('deleteLineBtn').style.display = 'none';
+    document.getElementById('lineModal').style.display = 'block';
+}
+
+function createLine() {
+    const name = document.getElementById('lineName').value.trim();
+    const type = document.getElementById('lineType').value;
+    const direction = document.getElementById('lineDirection').value;
+    const length = document.getElementById('lineLength').value;
+    const style = document.getElementById('lineStyle').value;
+    const editId = document.getElementById('lineEditId').value;
+    
+    // Length mappings (percentages of map width/height)
+    const lengthMap = {
+        short: 15,
+        medium: 25, 
+        long: 40,
+        extralong: 60
+    };
+    
+    if (editId) {
+        // Edit existing line
+        const line = ranchLines.find(l => l.id == editId);
+        if (line) {
+            line.name = name;
+            line.type = type;
+            line.direction = direction;
+            line.length = lengthMap[length];
+            line.style = style;
+        }
+        alert(`${name || 'Line'} updated!`);
+    } else {
+        // Create new line
+        const newLine = {
+            id: Date.now(),
+            name: name || `${type} line`,
+            type: type,
+            direction: direction,
+            length: lengthMap[length],
+            style: style,
+            position: {
+                x: 50, // start in center
+                y: 50
+            }
+        };
+        
+        ranchLines.push(newLine);
+        alert(`${newLine.name} created! Click anywhere on the map to position it.`);
+    }
+    
+    saveRanchLines();
+    closeModal();
+    
+    // Enable positioning mode if new line
+    if (!editId) {
+        enableLinePositioning();
+    }
+}
+
+let linePositioningMode = false;
+let tempLine = null;
+
+function enableLinePositioning() {
+    linePositioningMode = true;
+    tempLine = ranchLines[ranchLines.length - 1]; // Get the newest line
+    
+    const mapContainer = document.getElementById('ranch-map-container');
+    mapContainer.style.cursor = 'crosshair';
+    mapContainer.onclick = positionLine;
+    
+    // Show instruction
+    const instruction = document.createElement('div');
+    instruction.id = 'line-positioning-instruction';
+    instruction.style.cssText = `
+        position: absolute; top: 10px; left: 10px; right: 10px;
+        background: rgba(0,123,255,0.9); color: white; padding: 0.5rem;
+        border-radius: 8px; text-align: center; z-index: 1000;
+        font-weight: bold;
+    `;
+    instruction.textContent = `Click anywhere on the map to position "${tempLine.name}"`;
+    mapContainer.appendChild(instruction);
+}
+
+function positionLine(event) {
+    if (!linePositioningMode || !tempLine) return;
+    
+    const mapContainer = document.getElementById('ranch-map-container');
+    const rect = mapContainer.getBoundingClientRect();
+    
+    // Calculate click position as percentage
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    
+    // Update line position
+    tempLine.position.x = Math.max(0, Math.min(100, x));
+    tempLine.position.y = Math.max(0, Math.min(100, y));
+    
+    // Disable positioning mode
+    linePositioningMode = false;
+    tempLine = null;
+    mapContainer.style.cursor = 'default';
+    mapContainer.onclick = null;
+    
+    // Remove instruction
+    const instruction = document.getElementById('line-positioning-instruction');
+    if (instruction) instruction.remove();
+    
+    // Save and refresh
+    saveRanchLines();
+    displayRanchLines();
+    
+    alert('Line positioned! Enter Edit Mode to move it again.');
+}
+
+function displayRanchLines() {
+    const container = document.getElementById('shredding-areas'); // Same container as areas
+    
+    // Remove existing lines
+    document.querySelectorAll('.ranch-line').forEach(line => line.remove());
+    
+    ranchLines.forEach(line => {
+        const lineDiv = document.createElement('div');
+        lineDiv.className = `ranch-line ${line.type} ${line.direction} ${line.style}`;
+        lineDiv.style.position = 'absolute';
+        lineDiv.style.left = line.position.x + '%';
+        lineDiv.style.top = line.position.y + '%';
+        lineDiv.title = line.name;
+        lineDiv.onclick = () => handleLineClick(line);
+        
+        // Set line dimensions based on direction
+        if (line.direction === 'horizontal') {
+            lineDiv.style.width = line.length + '%';
+            lineDiv.style.height = '3px';
+        } else if (line.direction === 'vertical') {
+            lineDiv.style.width = '3px';
+            lineDiv.style.height = line.length + '%';
+        } else if (line.direction === 'diagonal-ne') {
+            lineDiv.style.width = line.length + '%';
+            lineDiv.style.height = '3px';
+            lineDiv.style.transform = 'rotate(45deg)';
+            lineDiv.style.transformOrigin = 'left center';
+        } else if (line.direction === 'diagonal-nw') {
+            lineDiv.style.width = line.length + '%';
+            lineDiv.style.height = '3px';
+            lineDiv.style.transform = 'rotate(-45deg)';
+            lineDiv.style.transformOrigin = 'left center';
+        }
+        
+        container.appendChild(lineDiv);
+    });
+}
+
+function handleLineClick(line) {
+    if (isEditMode) {
+        editLine(line);
+    } else {
+        // Do nothing for now - lines don't have a non-edit action like areas do
+    }
+}
+
+function editLine(line) {
+    // Set line data in edit modal
+    document.getElementById('editLineName').value = line.name;
+    document.getElementById('editLineType').value = line.type;
+    document.getElementById('editLineDirection').value = line.direction;
+    document.getElementById('editLineLength').value = getLengthOption(line.length);
+    document.getElementById('editLineStyle').value = line.style;
+    document.getElementById('editLineId').value = line.id;
+    
+    // Show edit modal
+    document.getElementById('editLineModal').style.display = 'block';
+}
+
+function getLengthOption(length) {
+    if (length <= 15) return 'short';
+    if (length <= 25) return 'medium';
+    if (length <= 40) return 'long';
+    return 'extralong';
+}
+
+function saveLineEdits() {
+    const lineId = document.getElementById('editLineId').value;
+    const name = document.getElementById('editLineName').value.trim();
+    const type = document.getElementById('editLineType').value;
+    const direction = document.getElementById('editLineDirection').value;
+    const length = document.getElementById('editLineLength').value;
+    const style = document.getElementById('editLineStyle').value;
+    
+    const lengthMap = {
+        short: 15,
+        medium: 25,
+        long: 40,
+        extralong: 60
+    };
+    
+    const line = ranchLines.find(l => l.id == lineId);
+    if (line) {
+        line.name = name || `${type} line`;
+        line.type = type;
+        line.direction = direction;
+        line.length = lengthMap[length];
+        line.style = style;
+        
+        saveRanchLines();
+        displayRanchLines();
+        closeModal();
+        alert('Line updated successfully!');
+    }
+}
+
+function startMoveLine() {
+    const lineId = document.getElementById('editLineId').value;
+    tempLine = ranchLines.find(l => l.id == lineId);
+    closeModal();
+    enableLinePositioning();
+}
+
+function confirmDeleteLine() {
+    const lineId = document.getElementById('editLineId').value;
+    const line = ranchLines.find(l => l.id == lineId);
+    
+    if (confirm(`Delete "${line.name}" permanently?`)) {
+        ranchLines = ranchLines.filter(l => l.id != lineId);
+        saveRanchLines();
+        displayRanchLines();
+        closeModal();
+        alert('Line deleted successfully!');
+    }
+}
+        
+function saveRanchLines() {
+    localStorage.setItem('ranchLines', JSON.stringify(ranchLines));
+}
+        
 function createArea() {
     const name = document.getElementById('areaName').value.trim();
     const shape = document.getElementById('areaShape').value;
@@ -4345,11 +4829,13 @@ function createArea() {
     }
     
     // Size mappings
-    const sizeMap = {
-        small: { width: 15, height: 10 },
-        medium: { width: 25, height: 18 },
-        large: { width: 35, height: 25 }
-    };
+const sizeMap = {
+    tiny: { width: 8, height: 6 },
+    small: { width: 15, height: 10 },
+    medium: { width: 25, height: 18 },
+    large: { width: 35, height: 25 },
+    huge: { width: 50, height: 35 }
+};
     
     if (editId) {
         // Edit existing area
@@ -4409,7 +4895,7 @@ function displayShreddingAreas() {
         areaDiv.textContent = area.name;
         areaDiv.title = getAreaTooltip(area);
         
-        areaDiv.onclick = () => handleAreaClick(area);
+        areaDiv.onclick = () => handleAreaClick(area);  
         container.appendChild(areaDiv);
     });
 }
@@ -4434,7 +4920,8 @@ function getAreaTooltip(area) {
 }
 
 function handleAreaClick(area) {
-    if (isEditMode) {
+    
+    if (isEditMode === true) {
         editArea(area);
     } else {
         markAreaShredded(area);
@@ -4523,34 +5010,132 @@ function viewAreaHistory() {
     alert(history);
 }
 
-function editArea(area) {
-    selectedArea = area;
+function handleAreaClick(area) {
     
-    // Visual selection
-    document.querySelectorAll('.shredding-area').forEach(el => el.classList.remove('selected'));
-    event.target.classList.add('selected');
-    
-    const action = confirm(`Edit "${area.name}"?\nOK = Edit Properties\nCancel = Delete Area`);
-    
-    if (action) {
-        editAreaProperties(area);
+    if (isEditMode) {
+        editArea(area);
     } else {
-        deleteArea(area);
+        markAreaShredded(area);
     }
 }
 
-function editAreaProperties(area) {
-    const newName = prompt('Area name:', area.name);
-    if (newName === null) return;
+function editAreaProperties() {
+    const areaId = document.getElementById('editAreaId').value;
+    const newName = document.getElementById('editAreaName').value.trim();
     
-    if (newName.trim()) {
-        area.name = newName.trim();
+    if (!newName) {
+        alert('Please enter an area name');
+        return;
+    }
+    
+    const area = shreddingAreas.find(a => a.id == areaId);
+    if (area) {
+        area.name = newName;
         saveShreddingAreas();
         displayShreddingAreas();
         updateAreaStats();
     }
+    closeModal();
+}
+        
+function startMoveArea() {
+    const areaId = document.getElementById('editAreaId').value;
+    tempArea = shreddingAreas.find(a => a.id == areaId);
+    
+    if (!tempArea) {
+        alert('Error: Could not find area to move');
+        return;
+    }
+    
+    closeModal();
+    enablePositioningMode();
 }
 
+
+function startResizeArea() {
+    const areaId = document.getElementById('editAreaId').value;
+    const area = shreddingAreas.find(a => a.id == areaId);
+    
+    // Set current values in resize modal
+    document.getElementById('resizeAreaId').value = areaId;
+    document.getElementById('resizeAreaName').textContent = area.name;
+    
+    // Set current size as selected
+    const currentSize = getCurrentSizeOption(area.position.width, area.position.height);
+    document.getElementById('resizeAreaSize').value = currentSize;
+    
+    // Close edit modal and show resize modal
+    closeModal();
+    document.getElementById('resizeAreaModal').style.display = 'block';
+}
+
+function getCurrentSizeOption(width, height) {
+    if (width <= 8) return 'tiny';
+    if (width <= 15) return 'small';
+    if (width <= 25) return 'medium';
+    if (width <= 35) return 'large';
+    return 'huge';
+}
+
+function confirmResize() {
+    const areaId = document.getElementById('resizeAreaId').value;
+    const newSize = document.getElementById('resizeAreaSize').value;
+    const area = shreddingAreas.find(a => a.id == areaId);
+    
+    const sizeMap = {
+        tiny: { width: 8, height: 6 },
+        small: { width: 15, height: 10 },
+        medium: { width: 25, height: 18 },
+        large: { width: 35, height: 25 },
+        huge: { width: 50, height: 35 }
+    };
+    
+    if (area && sizeMap[newSize]) {
+        area.position.width = sizeMap[newSize].width;
+        area.position.height = sizeMap[newSize].height;
+        
+        saveShreddingAreas();
+        displayShreddingAreas();
+        updateAreaStats();
+        closeModal();
+        alert('Area resized successfully!');
+    }
+}
+        
+function confirmDeleteEditArea() {
+    const areaId = document.getElementById('editAreaId').value;
+    const area = shreddingAreas.find(a => a.id == areaId);
+    
+    if (confirm(`Delete "${area.name}" permanently?\n\nThis will remove all shredding history.`)) {
+        shreddingAreas = shreddingAreas.filter(a => a.id != areaId);
+        saveShreddingAreas();
+        displayShreddingAreas();
+        updateAreaStats();
+        closeModal();
+        alert('Area deleted successfully!');
+    }
+}
+
+
+function editArea(area) {
+    
+    selectedArea = area;
+    
+    // Visual selection
+    document.querySelectorAll('.shredding-area').forEach(el => el.classList.remove('selected'));
+    
+    event.target.classList.add('selected');
+    
+    // Set area data in modal
+    document.getElementById('editAreaName').value = area.name;
+    
+    document.getElementById('editAreaId').value = area.id;
+    
+    // Show edit modal
+    document.getElementById('editAreaModal').style.display = 'block';
+}
+
+        
 function deleteArea(area) {
     if (confirm(`Delete "${area.name}" permanently?`)) {
         shreddingAreas = shreddingAreas.filter(a => a.id !== area.id);
@@ -4632,8 +5217,8 @@ let positioningMode = false;
 let tempArea = null;
 
 function enablePositioningMode() {
+    
     positioningMode = true;
-    tempArea = shreddingAreas[shreddingAreas.length - 1]; // Get the newest area
     
     const mapContainer = document.getElementById('ranch-map-container');
     mapContainer.style.cursor = 'crosshair';
@@ -4653,6 +5238,7 @@ function enablePositioningMode() {
 }
 
 function positionArea(event) {
+    
     if (!positioningMode || !tempArea) return;
     
     const mapContainer = document.getElementById('ranch-map-container');
@@ -4662,13 +5248,13 @@ function positionArea(event) {
     const x = ((event.clientX - rect.left) / rect.width) * 100;
     const y = ((event.clientY - rect.top) / rect.height) * 100;
     
-    // Update area position (center it on click point)
+    // Update the CORRECT area position (center it on click point)
     tempArea.position.x = Math.max(0, Math.min(100 - tempArea.position.width, x - tempArea.position.width/2));
     tempArea.position.y = Math.max(0, Math.min(100 - tempArea.position.height, y - tempArea.position.height/2));
     
     // Disable positioning mode
     positioningMode = false;
-    tempArea = null;
+    tempArea = null;  // Clear the reference
     mapContainer.style.cursor = 'default';
     mapContainer.onclick = null;
     
@@ -4680,7 +5266,6 @@ function positionArea(event) {
     saveShreddingAreas();
     displayShreddingAreas();
     
-    alert('Area positioned! You can move it again by entering Edit Mode.');
 }
 
 function editArea(area) {
@@ -4690,15 +5275,43 @@ function editArea(area) {
     document.querySelectorAll('.shredding-area').forEach(el => el.classList.remove('selected'));
     event.target.classList.add('selected');
     
-    const action = prompt(`"${area.name}" options:\n1 = Edit Properties\n2 = Move Position\n3 = Delete\n\nEnter 1, 2, or 3:`);
+    // Show edit modal instead of prompt
+    document.getElementById('editAreaName').value = area.name;
+    document.getElementById('editAreaId').value = area.id;
+    document.getElementById('editAreaModal').style.display = 'block';
+}
+
+function editAreaProperties() {
+    const areaId = document.getElementById('editAreaId').value;
+    const newName = document.getElementById('editAreaName').value.trim();
     
-    if (action === '1') {
-        editAreaProperties(area);
-    } else if (action === '2') {
-        moveArea(area);
-    } else if (action === '3') {
-        deleteArea(area);
+    if (!newName) {
+        alert('Please enter an area name');
+        return;
     }
+    
+    const area = shreddingAreas.find(a => a.id == areaId);
+    if (area) {
+        area.name = newName;
+        saveShreddingAreas();
+        displayShreddingAreas();
+        updateAreaStats();
+    }
+    closeModal();
+}
+
+function startMoveArea() {
+    
+    const areaId = document.getElementById('editAreaId').value;
+    
+    tempArea = shreddingAreas.find(a => a.id == areaId);
+    
+    if (!tempArea) {
+        return;
+    }
+    
+    closeModal();
+    enablePositioningMode();
 }
 
 function moveArea(area) {
