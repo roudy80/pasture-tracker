@@ -1522,6 +1522,13 @@
                 <button class="filter-btn" onclick="filterAnimals('chickens')">🐓 Chickens</button>
                 <button class="filter-btn" onclick="filterAnimals('dogs')">🐕 Dogs</button>
             </div>
+
+            <!-- Treatment Alerts Dashboard -->
+            <div id="treatmentAlertsSection" class="hidden" style="margin: 1rem 0; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px;">
+                <h3 style="margin: 0 0 0.5rem 0; color: #856404;">⚠️ Upcoming Treatments & Events</h3>
+                <div id="treatmentAlertsList" style="font-size: 0.9rem;"></div>
+            </div>
+
             <div id="animalsList" class="pastures-container">
                 <!-- Animals will be displayed here -->
             </div>
@@ -3592,7 +3599,101 @@ reader.readAsDataURL(file);
         }
         
         // Animals display function
+        function updateTreatmentAlerts() {
+            const alertsSection = document.getElementById('treatmentAlertsSection');
+            const alertsList = document.getElementById('treatmentAlertsList');
+            const today = new Date();
+            const alerts = [];
+
+            // Check all treatments
+            treatments.forEach(treatment => {
+                if (!treatment.nextDue) return;
+                const animal = animals.find(a => a.id == treatment.animalId);
+                if (!animal) return;
+
+                const nextDue = new Date(treatment.nextDue);
+                const daysUntilDue = Math.ceil((nextDue - today) / (1000 * 60 * 60 * 24));
+
+                if (daysUntilDue <= 14) {
+                    const icon = getAnimalIcon(animal.type);
+                    let urgency = 'normal';
+                    let color = '#333';
+
+                    if (daysUntilDue < 0) {
+                        urgency = 'overdue';
+                        color = '#dc3545';
+                    } else if (daysUntilDue <= 3) {
+                        urgency = 'urgent';
+                        color = '#ff6b6b';
+                    } else if (daysUntilDue <= 7) {
+                        urgency = 'soon';
+                        color = '#f39c12';
+                    }
+
+                    alerts.push({
+                        urgency,
+                        daysUntilDue,
+                        html: `<div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid ${color};">
+                            <strong style="color: ${color};">${icon} ${animal.name}</strong> - ${treatment.type}
+                            <br><span style="font-size: 0.85rem; color: #666;">${daysUntilDue < 0 ? `Overdue ${Math.abs(daysUntilDue)} days` : daysUntilDue === 0 ? 'Due today!' : `Due in ${daysUntilDue} days`}</span>
+                        </div>`
+                    });
+                }
+            });
+
+            // Check breeding due dates
+            animals.forEach(animal => {
+                if (!animal.breedingDate) return;
+
+                const breedDate = new Date(animal.breedingDate);
+                const dueDate = new Date(breedDate);
+                const gestationDays = animal.type === 'cattle' ? 283 : animal.type === 'horses' ? 340 : 0;
+                if (!gestationDays) return;
+
+                dueDate.setDate(breedDate.getDate() + gestationDays);
+                const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+
+                if (daysUntilDue <= 14) {
+                    const icon = getAnimalIcon(animal.type);
+                    const eventName = animal.type === 'cattle' ? 'Calving' : 'Foaling';
+                    let color = '#228B22';
+
+                    if (daysUntilDue < 0) {
+                        color = '#dc3545';
+                    } else if (daysUntilDue <= 7) {
+                        color = '#f39c12';
+                    }
+
+                    alerts.push({
+                        urgency: daysUntilDue < 0 ? 'overdue' : daysUntilDue <= 7 ? 'urgent' : 'soon',
+                        daysUntilDue,
+                        html: `<div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid ${color};">
+                            <strong style="color: ${color};">${icon} ${animal.name}</strong> - ${eventName}
+                            <br><span style="font-size: 0.85rem; color: #666;">${daysUntilDue < 0 ? `Overdue ${Math.abs(daysUntilDue)} days` : daysUntilDue === 0 ? 'Due today!' : `Due in ${daysUntilDue} days`}</span>
+                        </div>`
+                    });
+                }
+            });
+
+            // Sort by urgency and days
+            const urgencyOrder = { overdue: 0, urgent: 1, soon: 2, normal: 3 };
+            alerts.sort((a, b) => {
+                if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
+                    return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+                }
+                return a.daysUntilDue - b.daysUntilDue;
+            });
+
+            if (alerts.length > 0) {
+                alertsList.innerHTML = alerts.map(a => a.html).join('');
+                alertsSection.classList.remove('hidden');
+            } else {
+                alertsSection.classList.add('hidden');
+            }
+        }
+
         function displayAnimals() {
+            updateTreatmentAlerts();
             const container = document.getElementById('animalsList');
             
             // Filter animals based on current filter
