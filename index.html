@@ -2279,11 +2279,18 @@ let selectedArea = null;
         
         function updateBurnBanDate(county) {
             const dateInput = document.getElementById(county + 'Date');
-            burnBanStatus[county].expires = dateInput.value;
-            saveBurnBanStatus();
-            if (currentWeather) {
-                checkFireWeather(currentWeather);
+            const selectedDate = dateInput.value;
+
+            // Validate date is not in the past
+            const today = new Date().toISOString().split('T')[0];
+            if (selectedDate && selectedDate < today) {
+                alert('Burn ban expiry date cannot be in the past. Please select today or a future date.');
+                dateInput.value = burnBanStatus[county].expires || '';
+                return;
             }
+
+            burnBanStatus[county].expires = selectedDate;
+            saveBurnBanStatus();
         }
         
         function updateBurnBanDisplay(county) {
