@@ -3131,6 +3131,9 @@ reader.readAsDataURL(file);
             
             // Pre-populate dynamic fields after they're created
             setTimeout(() => {
+                if (document.getElementById('animalEarTag')) {
+                    document.getElementById('animalEarTag').value = animal.earTag || '';
+                }
                 if (document.getElementById('animalBreed')) {
                     document.getElementById('animalBreed').value = animal.breed || '';
                 }
@@ -3150,8 +3153,17 @@ reader.readAsDataURL(file);
                     document.getElementById('animalPurpose').value = animal.purpose || '';
                 }
                 if (document.getElementById('animalBreedingDate')) {
-        document.getElementById('animalBreedingDate').value = animal.breedingDate || '';
-    }
+                    document.getElementById('animalBreedingDate').value = animal.breedingDate || '';
+                }
+                if (document.getElementById('animalDam')) {
+                    document.getElementById('animalDam').value = animal.dam || '';
+                }
+                if (document.getElementById('animalSire')) {
+                    document.getElementById('animalSire').value = animal.sire || '';
+                }
+                if (document.getElementById('animalStatus')) {
+                    document.getElementById('animalStatus').value = animal.status || 'healthy';
+                }
             }, 50);
             
             // Store the animal ID for saving
@@ -3219,6 +3231,10 @@ reader.readAsDataURL(file);
             if (type === 'cattle') {
                 fieldsHtml = `
                     <div class="form-group">
+                        <label for="animalEarTag">Ear Tag #:</label>
+                        <input type="text" id="animalEarTag" placeholder="e.g., A123, 456">
+                    </div>
+                    <div class="form-group">
                         <label for="animalBreed">Breed:</label>
                         <input type="text" id="animalBreed" placeholder="e.g., Angus, Holstein">
                     </div>
@@ -3237,9 +3253,28 @@ reader.readAsDataURL(file);
                         </select>
                     </div>
                     <div class="form-group">
-            <label for="animalBreedingDate">Last Breeding Date:</label>
-            <input type="date" id="animalBreedingDate" title="283 day gestation period">
-        </div>                `;
+                        <label for="animalBreedingDate">Last Breeding Date:</label>
+                        <input type="date" id="animalBreedingDate" title="283 day gestation period">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalDam">Dam (Mother):</label>
+                        <input type="text" id="animalDam" placeholder="e.g., Bessie, A001">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalSire">Sire (Father):</label>
+                        <input type="text" id="animalSire" placeholder="e.g., Thunder, B042">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalStatus">Status:</label>
+                        <select id="animalStatus">
+                            <option value="healthy">🟢 Healthy</option>
+                            <option value="watch">🟡 Watch Closely</option>
+                            <option value="sick">🔴 Sick/Injured</option>
+                            <option value="pregnant">🔵 Pregnant</option>
+                            <option value="sold">⚫ Sold</option>
+                        </select>
+                    </div>
+                `;
             } else if (type === 'horses') {
                 fieldsHtml = `
                     <div class="form-group">
@@ -3260,9 +3295,28 @@ reader.readAsDataURL(file);
                         </select>
                     </div>
                     <div class="form-group">
-            <label for="animalBreedingDate">Last Breeding Date:</label>
-            <input type="date" id="animalBreedingDate" title="340 day gestation period">
-        </div>                `;
+                        <label for="animalBreedingDate">Last Breeding Date:</label>
+                        <input type="date" id="animalBreedingDate" title="340 day gestation period">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalDam">Dam (Mother):</label>
+                        <input type="text" id="animalDam" placeholder="e.g., Lady, A001">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalSire">Sire (Father):</label>
+                        <input type="text" id="animalSire" placeholder="e.g., Thunder, B042">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalStatus">Status:</label>
+                        <select id="animalStatus">
+                            <option value="healthy">🟢 Healthy</option>
+                            <option value="watch">🟡 Watch Closely</option>
+                            <option value="sick">🔴 Sick/Injured</option>
+                            <option value="pregnant">🔵 Pregnant</option>
+                            <option value="sold">⚫ Sold</option>
+                        </select>
+                    </div>
+                `;
             } else if (type === 'chickens') {
                 fieldsHtml = `
                     <div class="form-group">
@@ -3282,6 +3336,15 @@ reader.readAsDataURL(file);
                             <option value="both">Both</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="animalStatus">Status:</label>
+                        <select id="animalStatus">
+                            <option value="healthy">🟢 Healthy</option>
+                            <option value="watch">🟡 Watch Closely</option>
+                            <option value="sick">🔴 Sick/Injured</option>
+                            <option value="sold">⚫ Sold</option>
+                        </select>
+                    </div>
                 `;
             } else if (type === 'dogs') {
                 fieldsHtml = `
@@ -3299,6 +3362,15 @@ reader.readAsDataURL(file);
                             <option value="">Select...</option>
                             <option value="male">Male</option>
                             <option value="female">Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="animalStatus">Status:</label>
+                        <select id="animalStatus">
+                            <option value="healthy">🟢 Healthy</option>
+                            <option value="watch">🟡 Watch Closely</option>
+                            <option value="sick">🔴 Sick/Injured</option>
+                            <option value="sold">⚫ Sold</option>
                         </select>
                     </div>
                 `;
@@ -3335,15 +3407,23 @@ reader.readAsDataURL(file);
             const colorEl = document.getElementById('animalColor');
             const countEl = document.getElementById('animalCount');
             const purposeEl = document.getElementById('animalPurpose');
-            
+            const breedingDateEl = document.getElementById('animalBreedingDate');
+            const earTagEl = document.getElementById('animalEarTag');
+            const damEl = document.getElementById('animalDam');
+            const sireEl = document.getElementById('animalSire');
+            const statusEl = document.getElementById('animalStatus');
+
             if (breedEl) animalData.breed = breedEl.value.trim();
             if (weightEl) animalData.weight = weightEl.value;
             if (genderEl) animalData.gender = genderEl.value;
             if (colorEl) animalData.color = colorEl.value.trim();
             if (countEl) animalData.count = countEl.value;
             if (purposeEl) animalData.purpose = purposeEl.value;
-            const breedingDateEl = document.getElementById('animalBreedingDate');
-if (breedingDateEl) animalData.breedingDate = breedingDateEl.value;            
+            if (breedingDateEl) animalData.breedingDate = breedingDateEl.value;
+            if (earTagEl) animalData.earTag = earTagEl.value.trim();
+            if (damEl) animalData.dam = damEl.value.trim();
+            if (sireEl) animalData.sire = sireEl.value.trim();
+            if (statusEl) animalData.status = statusEl.value || 'healthy';            
             if (editId) {
                 // Edit existing animal
                 const animalIndex = animals.findIndex(a => a.id == editId);
@@ -3371,7 +3451,7 @@ if (breedingDateEl) animalData.breedingDate = breedingDateEl.value;
             // Update animal dropdown with current animals
             const animalSelect = document.getElementById('treatmentAnimal');
             animalSelect.innerHTML = '<option value="">Select animal...</option>';
-            
+
             animals.forEach(animal => {
                 const icon = getAnimalIcon(animal.type);
                 const option = document.createElement('option');
@@ -3379,12 +3459,19 @@ if (breedingDateEl) animalData.breedingDate = breedingDateEl.value;
                 option.textContent = `${icon} ${animal.name}`;
                 animalSelect.appendChild(option);
             });
-            
+
             // Set default date to today
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('treatmentDate').value = today;
-            
+
             document.getElementById('treatmentModal').style.display = 'block';
+        }
+
+        function addTreatmentForAnimal(animalId) {
+            // Call addTreatment to populate dropdown
+            addTreatment();
+            // Pre-select the animal
+            document.getElementById('treatmentAnimal').value = animalId;
         }
         
         function saveTreatment() {
@@ -3560,15 +3647,32 @@ if (breedingDateEl) animalData.breedingDate = breedingDateEl.value;
 let details = '';
 let breedingInfo = '';
 
+// Get status emoji
+const statusEmoji = {
+    'healthy': '🟢',
+    'watch': '🟡',
+    'sick': '🔴',
+    'pregnant': '🔵',
+    'sold': '⚫'
+}[animal.status || 'healthy'];
+
+// Build pedigree info
+const pedigreeInfo = [];
+if (animal.dam) pedigreeInfo.push(`Dam: ${animal.dam}`);
+if (animal.sire) pedigreeInfo.push(`Sire: ${animal.sire}`);
+const pedigreeStr = pedigreeInfo.length > 0 ? pedigreeInfo.join(' • ') : '';
+
 if (animal.type === 'cattle') {
-    details = [animal.breed, animal.gender, animal.weight ? `${animal.weight} lbs` : ''].filter(Boolean).join(' • ');
+    const detailsParts = [animal.breed, animal.gender, animal.weight ? `${animal.weight} lbs` : ''];
+    if (animal.earTag) detailsParts.unshift(`Tag: ${animal.earTag}`);
+    details = detailsParts.filter(Boolean).join(' • ');
     if (animal.breedingDate) {
         const breedDate = new Date(animal.breedingDate);
         const dueDate = new Date(breedDate);
         dueDate.setDate(breedDate.getDate() + 283); // 283 day gestation
         const today = new Date();
         const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-        
+
         if (daysUntilDue < 0) {
             breedingInfo = `Calving overdue ${Math.abs(daysUntilDue)} days`;
         } else if (daysUntilDue <= 14) {
@@ -3606,14 +3710,16 @@ if (animal.type === 'cattle') {
                     <div class="animal-card">
                         <div class="animal-header">
                             <div>
-                                <h3 class="animal-name">${icon} ${animal.name}</h3>
+                                <h3 class="animal-name">${icon} ${animal.name} ${statusEmoji}</h3>
                                 <div class="animal-type">${animal.type}</div>
                                 ${details ? `<div style="font-size: 0.8rem; color: #888; margin-top: 0.25rem;">${details}</div>` : ''}
+${pedigreeStr ? `<div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem; font-style: italic;">${pedigreeStr}</div>` : ''}
 ${breedingInfo ? `<div style="font-size: 0.8rem; color: #228B22; margin-top: 0.25rem; font-weight: bold;">${breedingInfo}</div>` : ''}
                             </div>
-                            <div class="pasture-actions">
-                                <button class="btn-small btn-edit" onclick="editAnimal(${animal.id})">Edit</button>
-                                <button class="btn-small btn-delete" onclick="deleteAnimal(${animal.id})">Delete</button>
+                            <div class="pasture-actions" style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <button class="btn-small" onclick="addTreatmentForAnimal(${animal.id})" style="background: #17a2b8; color: white;" title="Add Treatment">💉</button>
+                                <button class="btn-small btn-edit" onclick="editAnimal(${animal.id})" title="Edit">✏️</button>
+                                <button class="btn-small btn-delete" onclick="deleteAnimal(${animal.id})" title="Delete">🗑️</button>
                             </div>
                         </div>
                         
