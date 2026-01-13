@@ -2863,28 +2863,12 @@ document.getElementById('projectModal').removeAttribute('data-edit-id');
                 photos.unshift(photoData);
                 localStorage.setItem('pasturePhotos', JSON.stringify(photos));
                 displayPastures();
-                closeModal();
-                
-                // Clear the file input completely
-try {
-    const oldInput = document.getElementById('cameraInput');
-    const newInput = oldInput.cloneNode(true);
-    oldInput.parentNode.replaceChild(newInput, oldInput);
-} catch (error) {
-    console.log('Input replacement failed, trying standard clear:', error);
-    
-}
-                
-                alert('Photo saved successfully!');
 
-// Clear file input after successful save
-setTimeout(() => {
-    const fileInput = document.getElementById('cameraInput');
-    fileInput.value = '';
-    // Force the form to reset
-    const form = fileInput.closest('form') || fileInput.parentElement;
-    if (form && form.reset) form.reset();
-}, 500);
+                // Clear the file input for next photo
+                fileInput.value = '';
+
+                closeModal();
+                alert('Photo saved successfully!');
 
 };
 reader.onerror = function(error) {
@@ -4892,14 +4876,15 @@ const sizeMap = {
         };
         
         shreddingAreas.push(newArea);
+        tempArea = newArea;  // Set reference for positioning
         alert(`${name} created! Click anywhere on the map to position it.`);
     }
-    
+
     saveShreddingAreas();
     displayShreddingAreas();
     updateAreaStats();
     closeModal();
-    
+
     // Enable positioning mode if new area
     if (!editId) {
         enablePositioningMode();
