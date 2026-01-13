@@ -1522,6 +1522,13 @@
                 <button class="filter-btn" onclick="filterAnimals('chickens')">🐓 Chickens</button>
                 <button class="filter-btn" onclick="filterAnimals('dogs')">🐕 Dogs</button>
             </div>
+
+            <!-- Treatment Alerts Dashboard -->
+            <div id="treatmentAlertsSection" class="hidden" style="margin: 1rem 0; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px;">
+                <h3 style="margin: 0 0 0.5rem 0; color: #856404;">⚠️ Upcoming Treatments & Events</h3>
+                <div id="treatmentAlertsList" style="font-size: 0.9rem;"></div>
+            </div>
+
             <div id="animalsList" class="pastures-container">
                 <!-- Animals will be displayed here -->
             </div>
@@ -1530,9 +1537,10 @@
         <!-- Map Tab -->
 <div id="mapTab" class="tab-content">
     <div class="action-buttons">
+        <button class="btn btn-success" onclick="startGPSBoundaryCapture()">📍 RECORD FIELD BOUNDARY</button>
         <button class="btn btn-primary" id="editAreasBtn" onclick="toggleEditMode()">✏️ EDIT AREAS</button>
         <button class="btn btn-secondary" onclick="addNewArea()">➕ ADD AREA</button>
-        <button class="btn btn-secondary" onclick="addNewLine()">📏 ADD LINE</button>        
+        <button class="btn btn-secondary" onclick="addNewLine()">📏 ADD LINE</button>
         <button class="btn btn-secondary" onclick="viewShredHistory()">📊 VIEW HISTORY</button>
     </div>
     
@@ -1744,6 +1752,45 @@
                 <textarea id="treatmentNotes" rows="3" placeholder="e.g., 10cc injection, left side"></textarea>
             </div>
             <button class="btn btn-primary" onclick="saveTreatment()">Save Treatment</button>
+        </div>
+    </div>
+
+    <!-- GPS Boundary Capture Modal -->
+    <div id="gpsBoundaryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="stopGPSRecording()">&times;</span>
+            <h3>📍 Record Field Boundary</h3>
+
+            <div class="form-group">
+                <label for="gpsBoundaryName">Field/Pasture Name:</label>
+                <input type="text" id="gpsBoundaryName" placeholder="e.g., North Pasture, South Field">
+            </div>
+
+            <div id="gpsInstructions" style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #1976d2;">📱 Instructions</h4>
+                <p style="margin: 0; font-size: 0.9rem; line-height: 1.5;">
+                    1. Enter a name for this field<br>
+                    2. Click "Start Recording"<br>
+                    3. Walk or drive around the perimeter<br>
+                    4. GPS points will be captured automatically every 5 seconds<br>
+                    5. Click "Stop & Save" when you return to the start
+                </p>
+            </div>
+
+            <div id="gpsStatus" class="hidden" style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #856404;">🎯 Recording Status</h4>
+                <div style="font-size: 0.9rem;">
+                    <div><strong>Points Captured:</strong> <span id="gpsPointCount">0</span></div>
+                    <div><strong>GPS Accuracy:</strong> <span id="gpsAccuracy">--</span> meters</div>
+                    <div><strong>Last Update:</strong> <span id="gpsLastUpdate">--</span></div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-success" id="gpsStartBtn" onclick="startGPSRecording()">▶️ Start Recording</button>
+                <button class="btn btn-danger hidden" id="gpsStopBtn" onclick="finishGPSRecording()">⏹️ Stop & Save</button>
+                <button class="btn btn-secondary hidden" id="gpsPauseBtn" onclick="pauseGPSRecording()">⏸️ Pause</button>
+            </div>
         </div>
     </div>
 
@@ -2218,6 +2265,7 @@ let currentAnimalFilter = 'all';
 
 // CUSTOM SHREDDING AREA VARIABLES
 let shreddingAreas = JSON.parse(localStorage.getItem('shreddingAreas') || '[]');
+let fieldBoundaries = JSON.parse(localStorage.getItem('fieldBoundaries') || '[]');
 let ranchLines = JSON.parse(localStorage.getItem('ranchLines') || '[]');let isEditMode = false;
 let selectedArea = null;
      
@@ -2279,11 +2327,18 @@ let selectedArea = null;
         
         function updateBurnBanDate(county) {
             const dateInput = document.getElementById(county + 'Date');
-            burnBanStatus[county].expires = dateInput.value;
-            saveBurnBanStatus();
-            if (currentWeather) {
-                checkFireWeather(currentWeather);
+            const selectedDate = dateInput.value;
+
+            // Validate date is not in the past
+            const today = new Date().toISOString().split('T')[0];
+            if (selectedDate && selectedDate < today) {
+                alert('Burn ban expiry date cannot be in the past. Please select today or a future date.');
+                dateInput.value = burnBanStatus[county].expires || '';
+                return;
             }
+
+            burnBanStatus[county].expires = selectedDate;
+            saveBurnBanStatus();
         }
         
         function updateBurnBanDisplay(county) {
@@ -2863,28 +2918,12 @@ document.getElementById('projectModal').removeAttribute('data-edit-id');
                 photos.unshift(photoData);
                 localStorage.setItem('pasturePhotos', JSON.stringify(photos));
                 displayPastures();
-                closeModal();
-                
-                // Clear the file input completely
-try {
-    const oldInput = document.getElementById('cameraInput');
-    const newInput = oldInput.cloneNode(true);
-    oldInput.parentNode.replaceChild(newInput, oldInput);
-} catch (error) {
-    console.log('Input replacement failed, trying standard clear:', error);
-    
-}
-                
-                alert('Photo saved successfully!');
 
-// Clear file input after successful save
-setTimeout(() => {
-    const fileInput = document.getElementById('cameraInput');
-    fileInput.value = '';
-    // Force the form to reset
-    const form = fileInput.closest('form') || fileInput.parentElement;
-    if (form && form.reset) form.reset();
-}, 500);
+                // Clear the file input for next photo
+                fileInput.value = '';
+
+                closeModal();
+                alert('Photo saved successfully!');
 
 };
 reader.onerror = function(error) {
@@ -3140,6 +3179,9 @@ reader.readAsDataURL(file);
             
             // Pre-populate dynamic fields after they're created
             setTimeout(() => {
+                if (document.getElementById('animalEarTag')) {
+                    document.getElementById('animalEarTag').value = animal.earTag || '';
+                }
                 if (document.getElementById('animalBreed')) {
                     document.getElementById('animalBreed').value = animal.breed || '';
                 }
@@ -3159,8 +3201,17 @@ reader.readAsDataURL(file);
                     document.getElementById('animalPurpose').value = animal.purpose || '';
                 }
                 if (document.getElementById('animalBreedingDate')) {
-        document.getElementById('animalBreedingDate').value = animal.breedingDate || '';
-    }
+                    document.getElementById('animalBreedingDate').value = animal.breedingDate || '';
+                }
+                if (document.getElementById('animalDam')) {
+                    document.getElementById('animalDam').value = animal.dam || '';
+                }
+                if (document.getElementById('animalSire')) {
+                    document.getElementById('animalSire').value = animal.sire || '';
+                }
+                if (document.getElementById('animalStatus')) {
+                    document.getElementById('animalStatus').value = animal.status || 'healthy';
+                }
             }, 50);
             
             // Store the animal ID for saving
@@ -3228,6 +3279,10 @@ reader.readAsDataURL(file);
             if (type === 'cattle') {
                 fieldsHtml = `
                     <div class="form-group">
+                        <label for="animalEarTag">Ear Tag #:</label>
+                        <input type="text" id="animalEarTag" placeholder="e.g., A123, 456">
+                    </div>
+                    <div class="form-group">
                         <label for="animalBreed">Breed:</label>
                         <input type="text" id="animalBreed" placeholder="e.g., Angus, Holstein">
                     </div>
@@ -3246,9 +3301,28 @@ reader.readAsDataURL(file);
                         </select>
                     </div>
                     <div class="form-group">
-            <label for="animalBreedingDate">Last Breeding Date:</label>
-            <input type="date" id="animalBreedingDate" title="283 day gestation period">
-        </div>                `;
+                        <label for="animalBreedingDate">Last Breeding Date:</label>
+                        <input type="date" id="animalBreedingDate" title="283 day gestation period">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalDam">Dam (Mother):</label>
+                        <input type="text" id="animalDam" placeholder="e.g., Bessie, A001">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalSire">Sire (Father):</label>
+                        <input type="text" id="animalSire" placeholder="e.g., Thunder, B042">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalStatus">Status:</label>
+                        <select id="animalStatus">
+                            <option value="healthy">🟢 Healthy</option>
+                            <option value="watch">🟡 Watch Closely</option>
+                            <option value="sick">🔴 Sick/Injured</option>
+                            <option value="pregnant">🔵 Pregnant</option>
+                            <option value="sold">⚫ Sold</option>
+                        </select>
+                    </div>
+                `;
             } else if (type === 'horses') {
                 fieldsHtml = `
                     <div class="form-group">
@@ -3269,9 +3343,28 @@ reader.readAsDataURL(file);
                         </select>
                     </div>
                     <div class="form-group">
-            <label for="animalBreedingDate">Last Breeding Date:</label>
-            <input type="date" id="animalBreedingDate" title="340 day gestation period">
-        </div>                `;
+                        <label for="animalBreedingDate">Last Breeding Date:</label>
+                        <input type="date" id="animalBreedingDate" title="340 day gestation period">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalDam">Dam (Mother):</label>
+                        <input type="text" id="animalDam" placeholder="e.g., Lady, A001">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalSire">Sire (Father):</label>
+                        <input type="text" id="animalSire" placeholder="e.g., Thunder, B042">
+                    </div>
+                    <div class="form-group">
+                        <label for="animalStatus">Status:</label>
+                        <select id="animalStatus">
+                            <option value="healthy">🟢 Healthy</option>
+                            <option value="watch">🟡 Watch Closely</option>
+                            <option value="sick">🔴 Sick/Injured</option>
+                            <option value="pregnant">🔵 Pregnant</option>
+                            <option value="sold">⚫ Sold</option>
+                        </select>
+                    </div>
+                `;
             } else if (type === 'chickens') {
                 fieldsHtml = `
                     <div class="form-group">
@@ -3291,6 +3384,15 @@ reader.readAsDataURL(file);
                             <option value="both">Both</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="animalStatus">Status:</label>
+                        <select id="animalStatus">
+                            <option value="healthy">🟢 Healthy</option>
+                            <option value="watch">🟡 Watch Closely</option>
+                            <option value="sick">🔴 Sick/Injured</option>
+                            <option value="sold">⚫ Sold</option>
+                        </select>
+                    </div>
                 `;
             } else if (type === 'dogs') {
                 fieldsHtml = `
@@ -3308,6 +3410,15 @@ reader.readAsDataURL(file);
                             <option value="">Select...</option>
                             <option value="male">Male</option>
                             <option value="female">Female</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="animalStatus">Status:</label>
+                        <select id="animalStatus">
+                            <option value="healthy">🟢 Healthy</option>
+                            <option value="watch">🟡 Watch Closely</option>
+                            <option value="sick">🔴 Sick/Injured</option>
+                            <option value="sold">⚫ Sold</option>
                         </select>
                     </div>
                 `;
@@ -3344,15 +3455,23 @@ reader.readAsDataURL(file);
             const colorEl = document.getElementById('animalColor');
             const countEl = document.getElementById('animalCount');
             const purposeEl = document.getElementById('animalPurpose');
-            
+            const breedingDateEl = document.getElementById('animalBreedingDate');
+            const earTagEl = document.getElementById('animalEarTag');
+            const damEl = document.getElementById('animalDam');
+            const sireEl = document.getElementById('animalSire');
+            const statusEl = document.getElementById('animalStatus');
+
             if (breedEl) animalData.breed = breedEl.value.trim();
             if (weightEl) animalData.weight = weightEl.value;
             if (genderEl) animalData.gender = genderEl.value;
             if (colorEl) animalData.color = colorEl.value.trim();
             if (countEl) animalData.count = countEl.value;
             if (purposeEl) animalData.purpose = purposeEl.value;
-            const breedingDateEl = document.getElementById('animalBreedingDate');
-if (breedingDateEl) animalData.breedingDate = breedingDateEl.value;            
+            if (breedingDateEl) animalData.breedingDate = breedingDateEl.value;
+            if (earTagEl) animalData.earTag = earTagEl.value.trim();
+            if (damEl) animalData.dam = damEl.value.trim();
+            if (sireEl) animalData.sire = sireEl.value.trim();
+            if (statusEl) animalData.status = statusEl.value || 'healthy';            
             if (editId) {
                 // Edit existing animal
                 const animalIndex = animals.findIndex(a => a.id == editId);
@@ -3380,7 +3499,7 @@ if (breedingDateEl) animalData.breedingDate = breedingDateEl.value;
             // Update animal dropdown with current animals
             const animalSelect = document.getElementById('treatmentAnimal');
             animalSelect.innerHTML = '<option value="">Select animal...</option>';
-            
+
             animals.forEach(animal => {
                 const icon = getAnimalIcon(animal.type);
                 const option = document.createElement('option');
@@ -3388,12 +3507,19 @@ if (breedingDateEl) animalData.breedingDate = breedingDateEl.value;
                 option.textContent = `${icon} ${animal.name}`;
                 animalSelect.appendChild(option);
             });
-            
+
             // Set default date to today
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('treatmentDate').value = today;
-            
+
             document.getElementById('treatmentModal').style.display = 'block';
+        }
+
+        function addTreatmentForAnimal(animalId) {
+            // Call addTreatment to populate dropdown
+            addTreatment();
+            // Pre-select the animal
+            document.getElementById('treatmentAnimal').value = animalId;
         }
         
         function saveTreatment() {
@@ -3514,7 +3640,101 @@ if (breedingDateEl) animalData.breedingDate = breedingDateEl.value;
         }
         
         // Animals display function
+        function updateTreatmentAlerts() {
+            const alertsSection = document.getElementById('treatmentAlertsSection');
+            const alertsList = document.getElementById('treatmentAlertsList');
+            const today = new Date();
+            const alerts = [];
+
+            // Check all treatments
+            treatments.forEach(treatment => {
+                if (!treatment.nextDue) return;
+                const animal = animals.find(a => a.id == treatment.animalId);
+                if (!animal) return;
+
+                const nextDue = new Date(treatment.nextDue);
+                const daysUntilDue = Math.ceil((nextDue - today) / (1000 * 60 * 60 * 24));
+
+                if (daysUntilDue <= 14) {
+                    const icon = getAnimalIcon(animal.type);
+                    let urgency = 'normal';
+                    let color = '#333';
+
+                    if (daysUntilDue < 0) {
+                        urgency = 'overdue';
+                        color = '#dc3545';
+                    } else if (daysUntilDue <= 3) {
+                        urgency = 'urgent';
+                        color = '#ff6b6b';
+                    } else if (daysUntilDue <= 7) {
+                        urgency = 'soon';
+                        color = '#f39c12';
+                    }
+
+                    alerts.push({
+                        urgency,
+                        daysUntilDue,
+                        html: `<div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid ${color};">
+                            <strong style="color: ${color};">${icon} ${animal.name}</strong> - ${treatment.type}
+                            <br><span style="font-size: 0.85rem; color: #666;">${daysUntilDue < 0 ? `Overdue ${Math.abs(daysUntilDue)} days` : daysUntilDue === 0 ? 'Due today!' : `Due in ${daysUntilDue} days`}</span>
+                        </div>`
+                    });
+                }
+            });
+
+            // Check breeding due dates
+            animals.forEach(animal => {
+                if (!animal.breedingDate) return;
+
+                const breedDate = new Date(animal.breedingDate);
+                const dueDate = new Date(breedDate);
+                const gestationDays = animal.type === 'cattle' ? 283 : animal.type === 'horses' ? 340 : 0;
+                if (!gestationDays) return;
+
+                dueDate.setDate(breedDate.getDate() + gestationDays);
+                const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+
+                if (daysUntilDue <= 14) {
+                    const icon = getAnimalIcon(animal.type);
+                    const eventName = animal.type === 'cattle' ? 'Calving' : 'Foaling';
+                    let color = '#228B22';
+
+                    if (daysUntilDue < 0) {
+                        color = '#dc3545';
+                    } else if (daysUntilDue <= 7) {
+                        color = '#f39c12';
+                    }
+
+                    alerts.push({
+                        urgency: daysUntilDue < 0 ? 'overdue' : daysUntilDue <= 7 ? 'urgent' : 'soon',
+                        daysUntilDue,
+                        html: `<div style="margin: 0.5rem 0; padding: 0.5rem; background: white; border-radius: 4px; border-left: 3px solid ${color};">
+                            <strong style="color: ${color};">${icon} ${animal.name}</strong> - ${eventName}
+                            <br><span style="font-size: 0.85rem; color: #666;">${daysUntilDue < 0 ? `Overdue ${Math.abs(daysUntilDue)} days` : daysUntilDue === 0 ? 'Due today!' : `Due in ${daysUntilDue} days`}</span>
+                        </div>`
+                    });
+                }
+            });
+
+            // Sort by urgency and days
+            const urgencyOrder = { overdue: 0, urgent: 1, soon: 2, normal: 3 };
+            alerts.sort((a, b) => {
+                if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
+                    return urgencyOrder[a.urgency] - urgencyOrder[b.urgency];
+                }
+                return a.daysUntilDue - b.daysUntilDue;
+            });
+
+            if (alerts.length > 0) {
+                alertsList.innerHTML = alerts.map(a => a.html).join('');
+                alertsSection.classList.remove('hidden');
+            } else {
+                alertsSection.classList.add('hidden');
+            }
+        }
+
         function displayAnimals() {
+            updateTreatmentAlerts();
             const container = document.getElementById('animalsList');
             
             // Filter animals based on current filter
@@ -3569,15 +3789,32 @@ if (breedingDateEl) animalData.breedingDate = breedingDateEl.value;
 let details = '';
 let breedingInfo = '';
 
+// Get status emoji
+const statusEmoji = {
+    'healthy': '🟢',
+    'watch': '🟡',
+    'sick': '🔴',
+    'pregnant': '🔵',
+    'sold': '⚫'
+}[animal.status || 'healthy'];
+
+// Build pedigree info
+const pedigreeInfo = [];
+if (animal.dam) pedigreeInfo.push(`Dam: ${animal.dam}`);
+if (animal.sire) pedigreeInfo.push(`Sire: ${animal.sire}`);
+const pedigreeStr = pedigreeInfo.length > 0 ? pedigreeInfo.join(' • ') : '';
+
 if (animal.type === 'cattle') {
-    details = [animal.breed, animal.gender, animal.weight ? `${animal.weight} lbs` : ''].filter(Boolean).join(' • ');
+    const detailsParts = [animal.breed, animal.gender, animal.weight ? `${animal.weight} lbs` : ''];
+    if (animal.earTag) detailsParts.unshift(`Tag: ${animal.earTag}`);
+    details = detailsParts.filter(Boolean).join(' • ');
     if (animal.breedingDate) {
         const breedDate = new Date(animal.breedingDate);
         const dueDate = new Date(breedDate);
         dueDate.setDate(breedDate.getDate() + 283); // 283 day gestation
         const today = new Date();
         const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-        
+
         if (daysUntilDue < 0) {
             breedingInfo = `Calving overdue ${Math.abs(daysUntilDue)} days`;
         } else if (daysUntilDue <= 14) {
@@ -3615,14 +3852,16 @@ if (animal.type === 'cattle') {
                     <div class="animal-card">
                         <div class="animal-header">
                             <div>
-                                <h3 class="animal-name">${icon} ${animal.name}</h3>
+                                <h3 class="animal-name">${icon} ${animal.name} ${statusEmoji}</h3>
                                 <div class="animal-type">${animal.type}</div>
                                 ${details ? `<div style="font-size: 0.8rem; color: #888; margin-top: 0.25rem;">${details}</div>` : ''}
+${pedigreeStr ? `<div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem; font-style: italic;">${pedigreeStr}</div>` : ''}
 ${breedingInfo ? `<div style="font-size: 0.8rem; color: #228B22; margin-top: 0.25rem; font-weight: bold;">${breedingInfo}</div>` : ''}
                             </div>
-                            <div class="pasture-actions">
-                                <button class="btn-small btn-edit" onclick="editAnimal(${animal.id})">Edit</button>
-                                <button class="btn-small btn-delete" onclick="deleteAnimal(${animal.id})">Delete</button>
+                            <div class="pasture-actions" style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <button class="btn-small" onclick="addTreatmentForAnimal(${animal.id})" style="background: #17a2b8; color: white;" title="Add Treatment">💉</button>
+                                <button class="btn-small btn-edit" onclick="editAnimal(${animal.id})" title="Edit">✏️</button>
+                                <button class="btn-small btn-delete" onclick="deleteAnimal(${animal.id})" title="Delete">🗑️</button>
                             </div>
                         </div>
                         
@@ -4892,14 +5131,15 @@ const sizeMap = {
         };
         
         shreddingAreas.push(newArea);
+        tempArea = newArea;  // Set reference for positioning
         alert(`${name} created! Click anywhere on the map to position it.`);
     }
-    
+
     saveShreddingAreas();
     displayShreddingAreas();
     updateAreaStats();
     closeModal();
-    
+
     // Enable positioning mode if new area
     if (!editId) {
         enablePositioningMode();
@@ -5963,7 +6203,179 @@ function displayCalculatorResults(calc) {
 function saveShreddingAreas() {
     localStorage.setItem('shreddingAreas', JSON.stringify(shreddingAreas));
 }
-        
+
+// GPS BOUNDARY CAPTURE FUNCTIONS
+let gpsRecording = {
+    active: false,
+    paused: false,
+    watchId: null,
+    points: [],
+    fieldName: '',
+    lastUpdate: null
+};
+
+function startGPSBoundaryCapture() {
+    document.getElementById('gpsBoundaryModal').style.display = 'block';
+    document.getElementById('gpsBoundaryName').value = '';
+    document.getElementById('gpsStatus').classList.add('hidden');
+    document.getElementById('gpsInstructions').classList.remove('hidden');
+    document.getElementById('gpsStartBtn').classList.remove('hidden');
+    document.getElementById('gpsStopBtn').classList.add('hidden');
+    document.getElementById('gpsPauseBtn').classList.add('hidden');
+    document.getElementById('gpsPointCount').textContent = '0';
+    document.getElementById('gpsAccuracy').textContent = '--';
+    document.getElementById('gpsLastUpdate').textContent = '--';
+}
+
+function startGPSRecording() {
+    const fieldName = document.getElementById('gpsBoundaryName').value.trim();
+    if (!fieldName) {
+        alert('Please enter a field name first');
+        return;
+    }
+
+    if (!navigator.geolocation) {
+        alert('GPS is not supported by your browser');
+        return;
+    }
+
+    gpsRecording.active = true;
+    gpsRecording.paused = false;
+    gpsRecording.points = [];
+    gpsRecording.fieldName = fieldName;
+
+    document.getElementById('gpsInstructions').classList.add('hidden');
+    document.getElementById('gpsStatus').classList.remove('hidden');
+    document.getElementById('gpsStartBtn').classList.add('hidden');
+    document.getElementById('gpsStopBtn').classList.remove('hidden');
+    document.getElementById('gpsPauseBtn').classList.remove('hidden');
+
+    // Request high accuracy GPS
+    const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    };
+
+    gpsRecording.watchId = navigator.geolocation.watchPosition(
+        handleGPSSuccess,
+        handleGPSError,
+        options
+    );
+}
+
+function handleGPSSuccess(position) {
+    if (!gpsRecording.active || gpsRecording.paused) return;
+
+    const point = {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+        timestamp: new Date().toISOString()
+    };
+
+    gpsRecording.points.push(point);
+    gpsRecording.lastUpdate = new Date();
+
+    // Update UI
+    document.getElementById('gpsPointCount').textContent = gpsRecording.points.length;
+    document.getElementById('gpsAccuracy').textContent = Math.round(point.accuracy);
+    document.getElementById('gpsLastUpdate').textContent = new Date().toLocaleTimeString();
+
+    console.log(`GPS point captured: ${point.lat}, ${point.lon} (accuracy: ${Math.round(point.accuracy)}m)`);
+}
+
+function handleGPSError(error) {
+    console.error('GPS error:', error);
+    let message = 'GPS error: ';
+    switch (error.code) {
+        case error.PERMISSION_DENIED:
+            message += 'Location permission denied. Please enable location access.';
+            break;
+        case error.POSITION_UNAVAILABLE:
+            message += 'Location information unavailable. Make sure GPS is enabled.';
+            break;
+        case error.TIMEOUT:
+            message += 'Location request timed out. Make sure you have a clear view of the sky.';
+            break;
+        default:
+            message += 'Unknown error occurred.';
+    }
+    alert(message);
+}
+
+function pauseGPSRecording() {
+    if (!gpsRecording.active) return;
+
+    gpsRecording.paused = !gpsRecording.paused;
+    const pauseBtn = document.getElementById('gpsPauseBtn');
+
+    if (gpsRecording.paused) {
+        pauseBtn.textContent = '▶️ Resume';
+        pauseBtn.style.background = '#28a745';
+    } else {
+        pauseBtn.textContent = '⏸️ Pause';
+        pauseBtn.style.background = '#6c757d';
+    }
+}
+
+function finishGPSRecording() {
+    if (!gpsRecording.active) return;
+
+    if (gpsRecording.points.length < 3) {
+        alert('Need at least 3 GPS points to create a boundary. Keep recording.');
+        return;
+    }
+
+    // Stop GPS tracking
+    if (gpsRecording.watchId) {
+        navigator.geolocation.clearWatch(gpsRecording.watchId);
+    }
+
+    // Save the boundary
+    const boundary = {
+        id: Date.now(),
+        name: gpsRecording.fieldName,
+        points: gpsRecording.points,
+        dateCreated: new Date().toISOString(),
+        pointCount: gpsRecording.points.length,
+        avgAccuracy: Math.round(gpsRecording.points.reduce((sum, p) => sum + p.accuracy, 0) / gpsRecording.points.length)
+    };
+
+    fieldBoundaries.push(boundary);
+    localStorage.setItem('fieldBoundaries', JSON.stringify(fieldBoundaries));
+
+    // Reset
+    gpsRecording.active = false;
+    gpsRecording.points = [];
+
+    alert(`Field boundary saved!\n${boundary.pointCount} GPS points captured\nAverage accuracy: ${boundary.avgAccuracy} meters`);
+
+    closeModal();
+    displayFieldBoundaries();
+}
+
+function stopGPSRecording() {
+    if (gpsRecording.watchId) {
+        navigator.geolocation.clearWatch(gpsRecording.watchId);
+    }
+    gpsRecording.active = false;
+    gpsRecording.points = [];
+    closeModal();
+}
+
+function displayFieldBoundaries() {
+    // For now, just log them. We'll add visual display later
+    console.log('Field boundaries:', fieldBoundaries);
+
+    if (fieldBoundaries.length > 0) {
+        console.log(`You have ${fieldBoundaries.length} field(s) recorded:`);
+        fieldBoundaries.forEach(field => {
+            console.log(`- ${field.name}: ${field.pointCount} points, ${field.avgAccuracy}m avg accuracy`);
+        });
+    }
+}
+
 </script>
 </body>
 </html>
