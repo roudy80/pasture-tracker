@@ -1537,9 +1537,10 @@
         <!-- Map Tab -->
 <div id="mapTab" class="tab-content">
     <div class="action-buttons">
+        <button class="btn btn-success" onclick="startGPSBoundaryCapture()">📍 RECORD FIELD BOUNDARY</button>
         <button class="btn btn-primary" id="editAreasBtn" onclick="toggleEditMode()">✏️ EDIT AREAS</button>
         <button class="btn btn-secondary" onclick="addNewArea()">➕ ADD AREA</button>
-        <button class="btn btn-secondary" onclick="addNewLine()">📏 ADD LINE</button>        
+        <button class="btn btn-secondary" onclick="addNewLine()">📏 ADD LINE</button>
         <button class="btn btn-secondary" onclick="viewShredHistory()">📊 VIEW HISTORY</button>
     </div>
     
@@ -1751,6 +1752,45 @@
                 <textarea id="treatmentNotes" rows="3" placeholder="e.g., 10cc injection, left side"></textarea>
             </div>
             <button class="btn btn-primary" onclick="saveTreatment()">Save Treatment</button>
+        </div>
+    </div>
+
+    <!-- GPS Boundary Capture Modal -->
+    <div id="gpsBoundaryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="stopGPSRecording()">&times;</span>
+            <h3>📍 Record Field Boundary</h3>
+
+            <div class="form-group">
+                <label for="gpsBoundaryName">Field/Pasture Name:</label>
+                <input type="text" id="gpsBoundaryName" placeholder="e.g., North Pasture, South Field">
+            </div>
+
+            <div id="gpsInstructions" style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #1976d2;">📱 Instructions</h4>
+                <p style="margin: 0; font-size: 0.9rem; line-height: 1.5;">
+                    1. Enter a name for this field<br>
+                    2. Click "Start Recording"<br>
+                    3. Walk or drive around the perimeter<br>
+                    4. GPS points will be captured automatically every 5 seconds<br>
+                    5. Click "Stop & Save" when you return to the start
+                </p>
+            </div>
+
+            <div id="gpsStatus" class="hidden" style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #856404;">🎯 Recording Status</h4>
+                <div style="font-size: 0.9rem;">
+                    <div><strong>Points Captured:</strong> <span id="gpsPointCount">0</span></div>
+                    <div><strong>GPS Accuracy:</strong> <span id="gpsAccuracy">--</span> meters</div>
+                    <div><strong>Last Update:</strong> <span id="gpsLastUpdate">--</span></div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-success" id="gpsStartBtn" onclick="startGPSRecording()">▶️ Start Recording</button>
+                <button class="btn btn-danger hidden" id="gpsStopBtn" onclick="finishGPSRecording()">⏹️ Stop & Save</button>
+                <button class="btn btn-secondary hidden" id="gpsPauseBtn" onclick="pauseGPSRecording()">⏸️ Pause</button>
+            </div>
         </div>
     </div>
 
@@ -2225,6 +2265,7 @@ let currentAnimalFilter = 'all';
 
 // CUSTOM SHREDDING AREA VARIABLES
 let shreddingAreas = JSON.parse(localStorage.getItem('shreddingAreas') || '[]');
+let fieldBoundaries = JSON.parse(localStorage.getItem('fieldBoundaries') || '[]');
 let ranchLines = JSON.parse(localStorage.getItem('ranchLines') || '[]');let isEditMode = false;
 let selectedArea = null;
      
@@ -6162,7 +6203,179 @@ function displayCalculatorResults(calc) {
 function saveShreddingAreas() {
     localStorage.setItem('shreddingAreas', JSON.stringify(shreddingAreas));
 }
-        
+
+// GPS BOUNDARY CAPTURE FUNCTIONS
+let gpsRecording = {
+    active: false,
+    paused: false,
+    watchId: null,
+    points: [],
+    fieldName: '',
+    lastUpdate: null
+};
+
+function startGPSBoundaryCapture() {
+    document.getElementById('gpsBoundaryModal').style.display = 'block';
+    document.getElementById('gpsBoundaryName').value = '';
+    document.getElementById('gpsStatus').classList.add('hidden');
+    document.getElementById('gpsInstructions').classList.remove('hidden');
+    document.getElementById('gpsStartBtn').classList.remove('hidden');
+    document.getElementById('gpsStopBtn').classList.add('hidden');
+    document.getElementById('gpsPauseBtn').classList.add('hidden');
+    document.getElementById('gpsPointCount').textContent = '0';
+    document.getElementById('gpsAccuracy').textContent = '--';
+    document.getElementById('gpsLastUpdate').textContent = '--';
+}
+
+function startGPSRecording() {
+    const fieldName = document.getElementById('gpsBoundaryName').value.trim();
+    if (!fieldName) {
+        alert('Please enter a field name first');
+        return;
+    }
+
+    if (!navigator.geolocation) {
+        alert('GPS is not supported by your browser');
+        return;
+    }
+
+    gpsRecording.active = true;
+    gpsRecording.paused = false;
+    gpsRecording.points = [];
+    gpsRecording.fieldName = fieldName;
+
+    document.getElementById('gpsInstructions').classList.add('hidden');
+    document.getElementById('gpsStatus').classList.remove('hidden');
+    document.getElementById('gpsStartBtn').classList.add('hidden');
+    document.getElementById('gpsStopBtn').classList.remove('hidden');
+    document.getElementById('gpsPauseBtn').classList.remove('hidden');
+
+    // Request high accuracy GPS
+    const options = {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    };
+
+    gpsRecording.watchId = navigator.geolocation.watchPosition(
+        handleGPSSuccess,
+        handleGPSError,
+        options
+    );
+}
+
+function handleGPSSuccess(position) {
+    if (!gpsRecording.active || gpsRecording.paused) return;
+
+    const point = {
+        lat: position.coords.latitude,
+        lon: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+        timestamp: new Date().toISOString()
+    };
+
+    gpsRecording.points.push(point);
+    gpsRecording.lastUpdate = new Date();
+
+    // Update UI
+    document.getElementById('gpsPointCount').textContent = gpsRecording.points.length;
+    document.getElementById('gpsAccuracy').textContent = Math.round(point.accuracy);
+    document.getElementById('gpsLastUpdate').textContent = new Date().toLocaleTimeString();
+
+    console.log(`GPS point captured: ${point.lat}, ${point.lon} (accuracy: ${Math.round(point.accuracy)}m)`);
+}
+
+function handleGPSError(error) {
+    console.error('GPS error:', error);
+    let message = 'GPS error: ';
+    switch (error.code) {
+        case error.PERMISSION_DENIED:
+            message += 'Location permission denied. Please enable location access.';
+            break;
+        case error.POSITION_UNAVAILABLE:
+            message += 'Location information unavailable. Make sure GPS is enabled.';
+            break;
+        case error.TIMEOUT:
+            message += 'Location request timed out. Make sure you have a clear view of the sky.';
+            break;
+        default:
+            message += 'Unknown error occurred.';
+    }
+    alert(message);
+}
+
+function pauseGPSRecording() {
+    if (!gpsRecording.active) return;
+
+    gpsRecording.paused = !gpsRecording.paused;
+    const pauseBtn = document.getElementById('gpsPauseBtn');
+
+    if (gpsRecording.paused) {
+        pauseBtn.textContent = '▶️ Resume';
+        pauseBtn.style.background = '#28a745';
+    } else {
+        pauseBtn.textContent = '⏸️ Pause';
+        pauseBtn.style.background = '#6c757d';
+    }
+}
+
+function finishGPSRecording() {
+    if (!gpsRecording.active) return;
+
+    if (gpsRecording.points.length < 3) {
+        alert('Need at least 3 GPS points to create a boundary. Keep recording.');
+        return;
+    }
+
+    // Stop GPS tracking
+    if (gpsRecording.watchId) {
+        navigator.geolocation.clearWatch(gpsRecording.watchId);
+    }
+
+    // Save the boundary
+    const boundary = {
+        id: Date.now(),
+        name: gpsRecording.fieldName,
+        points: gpsRecording.points,
+        dateCreated: new Date().toISOString(),
+        pointCount: gpsRecording.points.length,
+        avgAccuracy: Math.round(gpsRecording.points.reduce((sum, p) => sum + p.accuracy, 0) / gpsRecording.points.length)
+    };
+
+    fieldBoundaries.push(boundary);
+    localStorage.setItem('fieldBoundaries', JSON.stringify(fieldBoundaries));
+
+    // Reset
+    gpsRecording.active = false;
+    gpsRecording.points = [];
+
+    alert(`Field boundary saved!\n${boundary.pointCount} GPS points captured\nAverage accuracy: ${boundary.avgAccuracy} meters`);
+
+    closeModal();
+    displayFieldBoundaries();
+}
+
+function stopGPSRecording() {
+    if (gpsRecording.watchId) {
+        navigator.geolocation.clearWatch(gpsRecording.watchId);
+    }
+    gpsRecording.active = false;
+    gpsRecording.points = [];
+    closeModal();
+}
+
+function displayFieldBoundaries() {
+    // For now, just log them. We'll add visual display later
+    console.log('Field boundaries:', fieldBoundaries);
+
+    if (fieldBoundaries.length > 0) {
+        console.log(`You have ${fieldBoundaries.length} field(s) recorded:`);
+        fieldBoundaries.forEach(field => {
+            console.log(`- ${field.name}: ${field.pointCount} points, ${field.avgAccuracy}m avg accuracy`);
+        });
+    }
+}
+
 </script>
 </body>
 </html>
